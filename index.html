@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RCR Auto Repair — KPI Dashboard</title>
+<style>
+:root {
+  --bg: #f0f2f7;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --blue: #1B2B8A;
+  --blue-light: #e8ecf8;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --orange: #ea580c;
+  --orange-light: #ffedd5;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* HEADER */
+.header{background:var(--blue);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--blue);letter-spacing:.5px}
+.logo-text{font-weight:800;font-size:18px;color:#fff;letter-spacing:1px}
+.logo-sub{font-size:10px;color:rgba(255,255,255,.55);letter-spacing:2px;margin-top:1px}
+.header-right{text-align:right}
+.header-date{font-size:11px;color:rgba(255,255,255,.7);letter-spacing:1px}
+.header-stats{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px}
+
+/* TABS */
+.tabs{background:var(--blue);border-bottom:1px solid rgba(255,255,255,.1);display:flex;padding:0 16px;gap:2px}
+.tab{background:none;border:none;padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .15s}
+.tab:hover{color:rgba(255,255,255,.75)}
+.tab.active{color:#fff;border-bottom-color:var(--amber)}
+
+/* LAYOUT */
+.content{padding:16px;max-width:980px;margin:0 auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow)}
+.card-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.card-title.amber{color:var(--amber)}
+.card-title.blue{color:var(--blue)}
+
+/* PERIOD SELECTOR */
+.period-strip{display:flex;gap:6px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:var(--shadow)}
+.period-btn{flex:1;padding:7px 4px;border-radius:5px;border:none;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;text-align:center;background:transparent;color:var(--text3);transition:all .15s}
+.period-btn:hover{background:var(--bg);color:var(--text2)}
+.period-btn.active{background:var(--blue);color:#fff;box-shadow:0 1px 3px rgba(27,43,138,.3)}
+
+/* DATE STRIPS */
+.strip-wrap{margin-bottom:12px}
+.strip-label{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);margin-bottom:6px;text-transform:uppercase}
+.date-strip{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px}
+.date-btn{white-space:nowrap;padding:5px 10px;border-radius:6px;border:1px solid var(--border);font-size:10px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
+.date-btn:hover{border-color:var(--blue);color:var(--blue)}
+.date-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* PACING WIDGET */
+.pacing-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.pacing-main{flex:1;min-width:200px}
+.pacing-title{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+.pacing-bar-wrap{height:10px;background:var(--bg);border-radius:5px;overflow:hidden;margin-bottom:6px}
+.pacing-bar{height:100%;border-radius:5px;transition:width .4s}
+.pacing-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--text2)}
+.pacing-items{display:flex;gap:16px;flex-wrap:wrap}
+.pacing-item{text-align:center}
+.pacing-item .val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.pacing-item .lbl{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+/* COMBINED SUMMARY */
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.summary-rev-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px}
+.rev-big{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.rev-label{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.rev-goal{text-align:right}
+.rev-goal .goal-val{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.rev-goal .goal-label{font-size:10px;color:var(--text3)}
+.pbar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.pbar-fill{height:100%;border-radius:4px;transition:width .4s}
+.rev-breakdown{display:flex;justify-content:space-between;font-size:10px;color:var(--text2)}
+.net-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.net-badge{border-radius:7px;padding:10px 12px}
+.net-badge .net-lbl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;font-weight:700}
+.net-badge .net-val{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.net-badge .net-detail{font-size:9px;margin-top:3px;opacity:.7}
+
+/* SHOP CARDS */
+.shop-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:0;box-shadow:var(--shadow-md);overflow:hidden}
+.shop-card-header{background:var(--blue);padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start}
+.shop-card-name{font-weight:800;font-size:15px;letter-spacing:1px;color:#fff}
+.shop-card-sub{font-size:9px;color:rgba(255,255,255,.5);margin-top:2px;letter-spacing:1px}
+.shop-card-gp{text-align:right}
+.shop-card-gp .gp-val{font-size:20px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.shop-card-gp .gp-lbl{font-size:9px;color:rgba(255,255,255,.5);letter-spacing:1px}
+.shop-card-body{padding:12px 14px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.kpi-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+.kpi-lbl{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;font-weight:600}
+.kpi-val{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi-delta{font-size:9px;margin-top:2px}
+.pill{display:inline-block;font-size:8px;padding:1px 5px;border-radius:3px;letter-spacing:.5px;font-weight:700;margin-top:2px}
+
+/* SHOP SECTIONS */
+.shop-section{margin-bottom:10px}
+.shop-section-title{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+
+/* PRODUCTIVITY BAR */
+.prod-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.prod-pct{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.prod-detail{font-size:10px;color:var(--text3)}
+
+/* AR ROW */
+.ar-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.ar-box{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:7px 9px;text-align:center}
+.ar-box .ar-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.ar-box .ar-lbl{font-size:8px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+/* TECH TABLE */
+.tech-mini-table{width:100%;font-size:11px;border-collapse:collapse}
+.tech-mini-table th{text-align:left;font-size:9px;color:var(--text3);font-weight:600;padding:3px 5px;letter-spacing:1px}
+.tech-mini-table td{padding:4px 5px;border-top:1px solid var(--border)}
+.tech-mini-table td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+
+/* COMEBACK BADGE */
+.cb-row{display:flex;gap:8px;align-items:center}
+.cb-badge{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:5px 10px;text-align:center;flex:1}
+.cb-badge .cb-val{font-size:15px;font-weight:700}
+.cb-badge .cb-lbl{font-size:8px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+
+/* NOTES */
+.notes-row{font-size:10px;color:var(--text2);border-top:1px solid var(--border);padding-top:8px;margin-top:8px;line-height:1.5}
+
+/* TEAM TAB */
+.team-table{width:100%;border-collapse:collapse;font-size:12px}
+.team-table th{padding:8px 10px;text-align:right;font-size:9px;letter-spacing:1.5px;color:var(--text3);font-weight:700;border-bottom:2px solid var(--border);text-transform:uppercase}
+.team-table th:first-child{text-align:left}
+.team-table td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.team-table td:first-child{text-align:left;font-weight:600}
+.team-table tr:last-child td{border-bottom:none}
+.team-table tr:hover td{background:var(--surface2)}
+
+/* P&L */
+.pl-table{width:100%;border-collapse:collapse;font-size:11px}
+.pl-table th{padding:6px 8px;text-align:right;color:var(--text3);font-weight:600;font-size:9px;letter-spacing:1px;white-space:nowrap;border-bottom:2px solid var(--border);text-transform:uppercase}
+.pl-table th:first-child{text-align:left}
+.pl-table td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+.pl-table td:first-child{text-align:left;color:var(--text2)}
+.pl-table tr:hover td{background:var(--surface2)}
+
+/* FORM */
+.form-section{margin-bottom:16px}
+.section-hdr{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid var(--border)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.field-label{font-size:10px;color:var(--text2);letter-spacing:.5px;margin-bottom:4px;font-weight:600}
+input[type=number],input[type=date],select,textarea{background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 10px;font-size:13px;font-family:inherit;border-radius:6px;width:100%;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(27,43,138,.08)}
+.btn-gold{background:var(--blue);color:#fff;border:none;padding:10px 24px;font-weight:700;font-size:12px;letter-spacing:1.5px;border-radius:6px;cursor:pointer;transition:opacity .15s}
+.btn-gold:hover{opacity:.88}
+.btn-saved{background:var(--green);color:#fff;border:none;padding:10px 24px;font-weight:700;font-size:12px;letter-spacing:1.5px;border-radius:6px;cursor:pointer}
+.btn-green{background:var(--green-light);color:var(--green);border:1px solid #86efac;padding:7px 12px;font-weight:700;font-size:10px;letter-spacing:1px;border-radius:6px;cursor:pointer}
+.btn-del{background:var(--red-light);color:var(--red);border:1px solid #fca5a5;padding:6px 10px;font-size:11px;border-radius:6px;cursor:pointer}
+.tech-row{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+.tech-row input{flex:1}
+
+/* HISTORY */
+.hist-tabs{display:flex;gap:6px;margin-bottom:12px}
+.hist-tab{padding:7px 14px;border:1px solid var(--border);border-radius:6px;font-weight:700;font-size:11px;letter-spacing:1px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
+.hist-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.mb12{margin-bottom:12px}
+.preload-banner{display:none;background:var(--green-light);border:1px solid #86efac;color:var(--green);padding:8px 12px;border-radius:6px;font-size:11px;letter-spacing:.5px;margin-bottom:12px;font-weight:600}
+
+/* PERIOD BANNER */
+.period-banner{background:var(--blue-light);border:1px solid #c7d2f0;border-left:3px solid var(--blue);padding:8px 14px;border-radius:6px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+
+
+/* TRENDS TAB */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+.chart-card-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.chart-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+.chart-legend-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);font-weight:600}
+.chart-legend-swatch{width:16px;height:3px;border-radius:2px;flex-shrink:0}
+.trend-period-btn{padding:6px 16px;border-radius:6px;border:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:1px;cursor:pointer;background:var(--surface);color:var(--text3);transition:all .15s}
+.trend-period-btn:hover{border-color:var(--blue);color:var(--blue)}
+.trend-period-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* LEADERBOARD TAB */
+.lboard-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.lboard-rank{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;flex-shrink:0;border:2px solid var(--border)}
+.lboard-name{font-size:15px;font-weight:800;letter-spacing:.3px}
+.lboard-meta{font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:.3px}
+.lboard-stats{display:flex;gap:12px;text-align:center;flex-shrink:0}
+.lboard-stat{min-width:52px}
+.lboard-stat-val{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.lboard-stat-lbl{font-size:8px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.shop-eff-card{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.shop-eff-box{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px 14px}
+
+@media(max-width:620px){
+  .grid2,.net-row{grid-template-columns:1fr}
+  .grid3,.kpi-grid{grid-template-columns:1fr 1fr}
+  .grid4{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .pacing-card{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-mark">RCR</div>
+    <div>
+      <div class="logo-text">RCR AUTO REPAIR</div>
+      <div class="logo-sub">KPI INTELLIGENCE DASHBOARD</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-date" id="hdr-date">—</div>
+    <div class="header-stats" id="hdr-stats">Loading...</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('dash',this)">Dashboard</button>
+  <button class="tab" onclick="showTab('trends',this)">Trends</button>
+  <button class="tab" onclick="showTab('leaderboard',this)">Leaderboard</button>
+  <button class="tab" onclick="showTab('pl',this)">P&amp;L</button>
+  <button class="tab" onclick="showTab('entry',this)">Data Entry</button>
+  <button class="tab" onclick="showTab('history',this)">History</button>
+</div>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="tab-panel active" id="tab-dash">
+  <div class="period-strip">
+    <button class="period-btn" id="pb-day"   onclick="setPeriod('day')">DAY</button>
+    <button class="period-btn" id="pb-week"  onclick="setPeriod('week')">WEEK</button>
+    <button class="period-btn" id="pb-month" onclick="setPeriod('month')">MONTH</button>
+    <button class="period-btn" id="pb-ytd"   onclick="setPeriod('ytd')">YTD</button>
+  </div>
+  <div id="date-strip-wrap" class="strip-wrap"><div class="strip-label">Select Day</div><div class="date-strip" id="date-strip"></div></div>
+  <div id="week-strip-wrap" class="strip-wrap" style="display:none"><div class="strip-label">Select Week</div><div class="date-strip" id="week-strip"></div></div>
+  <div id="month-strip-wrap" class="strip-wrap" style="display:none"><div class="strip-label">Select Month</div><div class="date-strip" id="month-strip"></div></div>
+  <div id="period-banner" style="display:none" class="period-banner">
+    <div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--blue);margin-bottom:2px" id="banner-label"></div>
+      <div style="font-size:11px;color:var(--text2)" id="banner-dates"></div>
+    </div>
+    <div style="font-size:10px;color:var(--text3)" id="banner-days"></div>
+  </div>
+  <div id="pacing-wrap"></div>
+  <div id="combined-wrap"></div>
+  <div class="grid2" id="shop-cards"></div>
+</div>
+
+<!-- TRENDS -->
+<div class="tab-panel" id="tab-trends">
+  <div id="trends-content"></div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="tab-panel" id="tab-leaderboard">
+  <div style="display:flex;gap:6px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:var(--shadow)">
+    <button class="period-btn" id="lpb-day"   onclick="setLboardPeriod('day')">DAY</button>
+    <button class="period-btn" id="lpb-week"  onclick="setLboardPeriod('week')">WEEK</button>
+    <button class="period-btn" id="lpb-month" onclick="setLboardPeriod('month')">MONTH</button>
+    <button class="period-btn" id="lpb-ytd"   onclick="setLboardPeriod('ytd')">YTD</button>
+  </div>
+  <div id="leaderboard-content"></div>
+</div>
+
+<!-- TEAM -->
+<div class="tab-panel" id="tab-team">
+  <div style="display:flex;gap:6px;margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:var(--shadow)">
+    <button class="period-btn" id="tpb-day"   onclick="setTeamPeriod('day')">DAY</button>
+    <button class="period-btn" id="tpb-week"  onclick="setTeamPeriod('week')">WEEK</button>
+    <button class="period-btn" id="tpb-month" onclick="setTeamPeriod('month')">MONTH</button>
+    <button class="period-btn" id="tpb-ytd"   onclick="setTeamPeriod('ytd')">YTD</button>
+  </div>
+  <div id="team-content"></div>
+</div>
+
+<!-- P&L -->
+<div class="tab-panel" id="tab-pl"><div id="pl-content"></div></div>
+
+<!-- DATA ENTRY -->
+<div class="tab-panel" id="tab-entry">
+  <div class="preload-banner" id="preload-msg">✓ DATA LOADED — REVIEW AND SAVE</div>
+  <div class="card mb12">
+    <div class="card-title">Entry Details</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="flex:1;min-width:130px"><div class="field-label">DATE</div><input type="date" id="e-date"></div>
+      <div style="flex:1;min-width:130px"><div class="field-label">SHOP</div><select id="e-shop"><option>Kenmore Ave</option><option>Oliver St</option></select></div>
+    </div>
+  </div>
+  <div class="card mb12">
+    <div class="section-hdr">Sales &amp; Revenue (enter ex-tax figures)</div>
+    <div class="form-grid">
+      <div><div class="field-label">Invoice Count</div><input type="number" id="f-invoiceCount" step="1" placeholder="—"></div>
+      <div><div class="field-label">Net Revenue (ex-tax)</div><input type="number" id="f-totalSales" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Labor Sales</div><input type="number" id="f-laborSales" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Parts Sales</div><input type="number" id="f-partsSales" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Parts Cost</div><input type="number" id="f-partsCost" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Tire Sales</div><input type="number" id="f-tireSales" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Tire Cost</div><input type="number" id="f-tireCost" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Total Discounts</div><input type="number" id="f-totalDiscounts" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Cash Collected</div><input type="number" id="f-cashCollected" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Credit Card Total<div style="font-size:9px;color:var(--text3);font-weight:400">2.5% fee applied</div></div><input type="number" id="f-ccAmount" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Total Invoiced (w/tax)</div><input type="number" id="f-totalInvoiced" step="0.01" placeholder="—"></div>
+    </div>
+  </div>
+  <div class="card mb12">
+    <div class="section-hdr">Margins &amp; KPIs</div>
+    <div class="form-grid">
+      <div><div class="field-label">Labor Margin %</div><input type="number" id="f-laborMargin" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Parts Margin %</div><input type="number" id="f-partsMargin" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Tire Margin %</div><input type="number" id="f-tireMargin" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">ELR ($)</div><input type="number" id="f-elr" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">ARO ex-tax ($)</div><input type="number" id="f-aro" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Gross Profit $</div><input type="number" id="f-grossProfit" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Gross Profit %</div><input type="number" id="f-gpPercent" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Billed Hours</div><input type="number" id="f-billedHours" step="0.01" placeholder="—"></div>
+      <div><div class="field-label">Comebacks</div><input type="number" id="f-comebacks" step="1" placeholder="0"></div>
+    </div>
+  </div>
+  <div class="card mb12">
+    <div class="section-hdr">Technician Clock Hours (excl. writers &amp; tow)</div>
+    <div id="tech-rows"></div>
+    <button class="btn-green" onclick="addTech()" style="margin-top:6px">+ Add Tech</button>
+    <div id="tech-total" style="font-size:10px;color:var(--text3);margin-top:6px"></div>
+  </div>
+  <div class="card mb12">
+    <div class="field-label">Notes</div>
+    <textarea id="f-notes" rows="2" placeholder="Notable jobs, tech hours, flags..."></textarea>
+  </div>
+  <button id="save-btn" class="btn-gold" onclick="saveEntry()">SAVE ENTRY</button>
+</div>
+
+<!-- HISTORY -->
+<div class="tab-panel" id="tab-history">
+  <div class="hist-tabs">
+    <button class="hist-tab active" id="ht-ken" onclick="setHistShop('Kenmore Ave')">Kenmore Ave</button>
+    <button class="hist-tab" id="ht-olv" onclick="setHistShop('Oliver St')">Oliver St</button>
+  </div>
+  <div class="card" style="padding:0;overflow-x:auto"><table id="hist-table" style="width:100%;border-collapse:collapse;font-size:11px"></table></div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const FIXED_KEN=1220,FIXED_OLV=1680,REV_GOAL=5100,TODAY='2026-04-28';
+const SHOP_FIXED={'Kenmore Ave':FIXED_KEN,'Oliver St':FIXED_OLV};
+// Non-technicians — excluded from productivity & tech efficiency calculations
+const NON_TECHS=new Set(['Ron','John','Simon']);
+const T={
+  parts:{poor:35,fair:42,good:45,elite:48},
+  labor:{poor:65,fair:68,good:72,elite:78},
+  tire: {poor:15,fair:20,good:25,elite:30},
+  elr:  {poor:120,fair:128,good:135,elite:160},
+  aro:  {poor:250,fair:300,good:350,elite:500},
+  gp:   {poor:45,fair:50,good:55,elite:65},
+  prod: {poor:60,fair:70,good:80,elite:90}
+};
+
+// ============================================================
+// DATA — replaced nightly by update_dashboard.py
+// DATA-START
+const SEED=[
+  {date:"2026-04-01",shop:"Kenmore Ave",invoiceCount:5,billedHours:6.0,laborSales:777.48,partsSales:560.59,partsCost:324.65,tireSales:0,tireCost:0,totalDiscounts:35.9,laborMargin:76.77,partsMargin:49.36,tireMargin:0,elr:127.91,aro:260.43,grossProfit:799.27,gpPercent:61.38,totalSales:1302.17,cashCollected:407.48,totalInvoiced:1413.31,ccAmount:407.48,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"Jack 8hrs."},
+  {date:"2026-04-01",shop:"Oliver St",invoiceCount:4,billedHours:3.2,laborSales:448.45,partsSales:766.3,partsCost:315.3,tireSales:0,tireCost:0,totalDiscounts:64.41,laborMargin:66.73,partsMargin:55.08,tireMargin:0,elr:140.14,aro:287.59,grossProfit:685.84,gpPercent:59.62,totalSales:1150.35,cashCollected:2790.24,totalInvoiced:1239.02,ccAmount:2790.24,techHours:[{name:"Peter",hours:6.0},{name:"Bryan",hours:7.5}],totalTechClock:13.5,comebacks:0,notes:"Peter 6, Bryan 7.5."},
+  {date:"2026-04-02",shop:"Kenmore Ave",invoiceCount:8,billedHours:13.2,laborSales:2207.53,partsSales:2078.72,partsCost:1192.69,tireSales:973.88,tireCost:613.88,totalDiscounts:93.33,laborMargin:78.75,partsMargin:40.53,tireMargin:36.97,elr:165.72,aro:648.1,grossProfit:2898.43,gpPercent:55.9,totalSales:5184.8,cashCollected:7063.65,totalInvoiced:5633.21,ccAmount:6180.64,techHours:[{name:"Ryan",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"Jack sick, Ryan covered. Damaged part $309.94."},
+  {date:"2026-04-02",shop:"Oliver St",invoiceCount:4,billedHours:17.1,laborSales:2418.85,partsSales:1311.45,partsCost:470.01,tireSales:0,tireCost:0,totalDiscounts:175.61,laborMargin:73.58,partsMargin:58.62,tireMargin:0,elr:141.45,aro:888.67,grossProfit:2445.58,gpPercent:68.8,totalSales:3554.62,cashCollected:1330.46,totalInvoiced:3838.27,ccAmount:1330.46,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"Peter 9, Bryan 8."},
+  {date:"2026-04-03",shop:"Kenmore Ave",invoiceCount:7,billedHours:4.35,laborSales:774.4,partsSales:1477.18,partsCost:817.61,tireSales:0,tireCost:0,totalDiscounts:71.21,laborMargin:82.02,partsMargin:41.85,tireMargin:0,elr:178.02,aro:311.48,grossProfit:1223.56,gpPercent:56.12,totalSales:2180.37,cashCollected:2153.41,totalInvoiced:2364.76,ccAmount:2122.41,techHours:[{name:"Ryan",hours:8.0}],totalTechClock:8.0,comebacks:1,notes:"Jack sick, Ryan covered. Warranty job."},
+  {date:"2026-04-03",shop:"Oliver St",invoiceCount:6,billedHours:8.93,laborSales:1338.73,partsSales:1032.1,partsCost:439.4,tireSales:268.32,tireCost:208.32,totalDiscounts:134.85,laborMargin:75.8,partsMargin:51.03,tireMargin:22.36,elr:149.91,aro:417.8,grossProfit:1533.13,gpPercent:61.16,totalSales:2506.75,cashCollected:1712.28,totalInvoiced:2703.79,ccAmount:1283.4,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:5.5}],totalTechClock:14.5,comebacks:0,notes:"Peter 9, Bryan 5.5."},
+  {date:"2026-04-06",shop:"Kenmore Ave",invoiceCount:4,billedHours:7.5,laborSales:580.7,partsSales:734.99,partsCost:397.57,tireSales:0,tireCost:0,totalDiscounts:6.67,laborMargin:79.64,partsMargin:45.41,tireMargin:0,elr:77.43,aro:328.01,grossProfit:793.7,gpPercent:60.49,totalSales:1312.02,cashCollected:1426.57,totalInvoiced:1426.57,ccAmount:1426.57,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"ELR $77 very low. All card."},
+  {date:"2026-04-06",shop:"Oliver St",invoiceCount:4,billedHours:8.5,laborSales:1127.15,partsSales:742.91,partsCost:420.96,tireSales:663.28,tireCost:431.28,totalDiscounts:107.02,laborMargin:75.59,partsMargin:33.8,tireMargin:34.98,elr:132.61,aro:616.58,grossProfit:1330.97,gpPercent:53.97,totalSales:2466.13,cashCollected:3618.73,totalInvoiced:2658.73,ccAmount:1158.73,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:7.0}],totalTechClock:16.0,comebacks:0,notes:"Parts 33.8%."},
+  {date:"2026-04-07",shop:"Kenmore Ave",invoiceCount:6,billedHours:4.9,laborSales:598.73,partsSales:882.51,partsCost:409.66,tireSales:0,tireCost:0,totalDiscounts:20.95,laborMargin:77.75,partsMargin:52.46,tireMargin:0,elr:122.19,aro:244.5,grossProfit:924.13,gpPercent:62.99,totalSales:1466.99,cashCollected:1395.03,totalInvoiced:1591.1,ccAmount:1275.46,techHours:[{name:"Jack",hours:7.95}],totalTechClock:7.95,comebacks:0,notes:"Jack 7.95hrs."},
+  {date:"2026-04-07",shop:"Oliver St",invoiceCount:4,billedHours:8.34,laborSales:1209.1,partsSales:717.36,partsCost:267.47,tireSales:0,tireCost:0,totalDiscounts:64.93,laborMargin:73.29,partsMargin:55.94,tireMargin:0,elr:144.98,aro:465.38,grossProfit:1251.16,gpPercent:67.21,totalSales:1861.57,cashCollected:778.33,totalInvoiced:1998.46,ccAmount:628.38,techHours:[{name:"Peter",hours:5.5},{name:"Bryan",hours:8.0}],totalTechClock:13.5,comebacks:0,notes:"Peter 5.5, Bryan 8."},
+  {date:"2026-04-08",shop:"Kenmore Ave",invoiceCount:5,billedHours:5.36,laborSales:793.95,partsSales:1023.76,partsCost:513.0,tireSales:0,tireCost:0,totalDiscounts:7.55,laborMargin:72.1,partsMargin:49.52,tireMargin:0,elr:148.13,aro:362.03,grossProfit:1075.66,gpPercent:59.42,totalSales:1810.16,cashCollected:2372.29,totalInvoiced:1964.87,ccAmount:2351.29,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"Jack 8hrs."},
+  {date:"2026-04-08",shop:"Oliver St",invoiceCount:4,billedHours:8.92,laborSales:1213.2,partsSales:1253.23,partsCost:516.58,tireSales:0,tireCost:0,totalDiscounts:129.98,laborMargin:75.03,partsMargin:54.01,tireMargin:0,elr:136.01,aro:584.11,grossProfit:1516.97,gpPercent:64.93,totalSales:2336.32,cashCollected:6162.41,totalInvoiced:2521.69,ccAmount:4134.86,techHours:[{name:"Bryan",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"Bryan 8+class. Peter SD."},
+  {date:"2026-04-09",shop:"Kenmore Ave",invoiceCount:7,billedHours:3.6,laborSales:478.4,partsSales:407.41,partsCost:183.87,tireSales:0,tireCost:0,totalDiscounts:22.22,laborMargin:74.54,partsMargin:54.05,tireMargin:0,elr:128.74,aro:123.37,grossProfit:561.72,gpPercent:65.04,totalSales:863.59,cashCollected:912.64,totalInvoiced:933.64,ccAmount:719.01,techHours:[{name:"Jack",hours:7.75}],totalTechClock:7.75,comebacks:0,notes:"Jack 7.75. ARO $123 very low."},
+  {date:"2026-04-09",shop:"Oliver St",invoiceCount:2,billedHours:4.5,laborSales:399.7,partsSales:315.76,partsCost:121.87,tireSales:0,tireCost:0,totalDiscounts:100.42,laborMargin:59.29,partsMargin:43.41,tireMargin:0,elr:88.82,aro:307.52,grossProfit:330.47,gpPercent:53.73,totalSales:615.04,cashCollected:664.25,totalInvoiced:664.25,ccAmount:102.6,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"$100 disc excessive. Labor 59%."},
+  {date:"2026-04-10",shop:"Kenmore Ave",invoiceCount:11,billedHours:21.09,laborSales:2845.38,partsSales:4135.95,partsCost:1570.13,tireSales:0,tireCost:0,totalDiscounts:66.29,laborMargin:72.97,partsMargin:61.61,tireMargin:0,elr:133.97,aro:628.64,grossProfit:4581.31,gpPercent:66.25,totalSales:6915.04,cashCollected:7512.76,totalInvoiced:7512.76,ccAmount:4944.49,techHours:[{name:"Jack",hours:7.75}],totalTechClock:7.75,comebacks:0,notes:"Strong day."},
+  {date:"2026-04-10",shop:"Oliver St",invoiceCount:7,billedHours:7.57,laborSales:1157.45,partsSales:1953.39,partsCost:773.93,tireSales:0,tireCost:0,totalDiscounts:253.62,laborMargin:77.63,partsMargin:54.47,tireMargin:0,elr:152.9,aro:408.17,grossProfit:1824.39,gpPercent:63.85,totalSales:2857.22,cashCollected:3269.24,totalInvoiced:3084.12,ccAmount:3269.24,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"$253 discount high. All card."},
+  {date:"2026-04-13",shop:"Kenmore Ave",invoiceCount:8,billedHours:7.0,laborSales:806.56,partsSales:707.5,partsCost:323.35,tireSales:0,tireCost:0,totalDiscounts:58.02,laborMargin:80.45,partsMargin:53.1,tireMargin:0,elr:109.52,aro:182.01,grossProfit:982.84,gpPercent:67.5,totalSales:1456.04,cashCollected:1534.42,totalInvoiced:1577.92,ccAmount:1513.42,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"ELR $109 below target."},
+  {date:"2026-04-13",shop:"Oliver St",invoiceCount:3,billedHours:5.0,laborSales:707.5,partsSales:611.34,partsCost:295.44,tireSales:0,tireCost:0,totalDiscounts:14.7,laborMargin:68.2,partsMargin:50.48,tireMargin:0,elr:141.5,aro:434.71,grossProfit:783.7,gpPercent:60.09,totalSales:1304.14,cashCollected:1807.67,totalInvoiced:1407.67,ccAmount:1397.67,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"$400 off Drew prior bill applied."},
+  {date:"2026-04-14",shop:"Kenmore Ave",invoiceCount:3,billedHours:4.05,laborSales:601.08,partsSales:821.43,partsCost:428.68,tireSales:0,tireCost:0,totalDiscounts:148.67,laborMargin:76.67,partsMargin:36.28,tireMargin:0,elr:148.41,aro:468.78,grossProfit:837.41,gpPercent:59.55,totalSales:1406.34,cashCollected:123.51,totalInvoiced:1525.71,ccAmount:123.51,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"Parts 36%. $1,402 uncollected."},
+  {date:"2026-04-14",shop:"Oliver St",invoiceCount:4,billedHours:8.2,laborSales:1521.8,partsSales:1283.56,partsCost:530.99,tireSales:1756.4,tireCost:1176.4,totalDiscounts:154.05,laborMargin:84.11,partsMargin:54.33,tireMargin:33.02,elr:181.54,aro:1108.18,grossProfit:2468.72,gpPercent:55.69,totalSales:4432.71,cashCollected:765.63,totalInvoiced:4785.32,ccAmount:705.63,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"$4,019 uncollected."},
+  {date:"2026-04-15",shop:"Kenmore Ave",invoiceCount:6,billedHours:7.7,laborSales:997.8,partsSales:562.32,partsCost:250.51,tireSales:1076.16,tireCost:596.16,totalDiscounts:33.4,laborMargin:74.47,partsMargin:54.36,tireMargin:44.6,elr:126.99,aro:437.81,grossProfit:1510.61,gpPercent:57.51,totalSales:2626.88,cashCollected:4804.9,totalInvoiced:2850.16,ccAmount:1866.09,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"Amazon ACH $2,037.64."},
+  {date:"2026-04-15",shop:"Oliver St",invoiceCount:7,billedHours:5.0,laborSales:657.6,partsSales:2083.9,partsCost:594.71,tireSales:648.68,tireCost:368.68,totalDiscounts:42.72,laborMargin:75.27,partsMargin:70.86,tireMargin:43.16,elr:131.52,aro:479.64,grossProfit:2223.47,gpPercent:66.22,totalSales:3357.46,cashCollected:2610.22,totalInvoiced:3621.91,ccAmount:2610.22,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:7.0}],totalTechClock:16.0,comebacks:0,notes:"Peter 9, Bryan 7."},
+  {date:"2026-04-16",shop:"Kenmore Ave",invoiceCount:4,billedHours:5.1,laborSales:834.83,partsSales:1094.0,partsCost:515.41,tireSales:836.0,tireCost:596.0,totalDiscounts:16.54,laborMargin:78.17,partsMargin:52.16,tireMargin:28.71,elr:163.69,aro:690.07,grossProfit:1456.63,gpPercent:52.77,totalSales:2760.29,cashCollected:3101.0,totalInvoiced:2997.1,ccAmount:1948.53,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"Tire margin 28.7%."},
+  {date:"2026-04-16",shop:"Oliver St",invoiceCount:4,billedHours:9.3,laborSales:1168.9,partsSales:946.91,partsCost:378.12,tireSales:0,tireCost:0,totalDiscounts:183.94,laborMargin:72.68,partsMargin:50.44,tireMargin:0,elr:125.69,aro:482.97,grossProfit:1234.4,gpPercent:63.9,totalSales:1931.87,cashCollected:3213.79,totalInvoiced:2085.23,ccAmount:2761.81,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"$184 parts discount."},
+  {date:"2026-04-17",shop:"Kenmore Ave",invoiceCount:4,billedHours:3.8,laborSales:644.95,partsSales:633.66,partsCost:427.74,tireSales:0,tireCost:0,totalDiscounts:15.43,laborMargin:75.25,partsMargin:30.81,tireMargin:0,elr:169.72,aro:315.8,grossProfit:675.84,gpPercent:53.5,totalSales:1263.18,cashCollected:1373.71,totalInvoiced:1373.71,ccAmount:1373.71,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:1,notes:"WARRANTY ROTOR. Parts 30.8%."},
+  {date:"2026-04-17",shop:"Oliver St",invoiceCount:6,billedHours:6.69,laborSales:938.62,partsSales:2093.99,partsCost:1027.26,tireSales:0,tireCost:0,totalDiscounts:351.84,laborMargin:78.1,partsMargin:41.03,tireMargin:0,elr:140.3,aro:446.8,grossProfit:1447.96,gpPercent:54.01,totalSales:2680.77,cashCollected:3369.45,totalInvoiced:2892.75,ccAmount:2381.68,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"$352 discount very high."},
+  {date:"2026-04-20",shop:"Kenmore Ave",invoiceCount:7,billedHours:12.5,laborSales:1792.68,partsSales:1815.81,partsCost:918.81,tireSales:0,tireCost:0,totalDiscounts:87.42,laborMargin:77.22,partsMargin:48.68,tireMargin:0,elr:138.46,aro:503.01,grossProfit:2208.01,gpPercent:62.71,totalSales:3521.07,cashCollected:3925.01,totalInvoiced:3825.52,ccAmount:3525.01,techHours:[{name:"Jack",hours:8.0},{name:"Bryan",hours:7.0}],totalTechClock:15.0,comebacks:0,notes:"Jack 8, Bryan 7."},
+  {date:"2026-04-20",shop:"Oliver St",invoiceCount:3,billedHours:1.0,laborSales:101.95,partsSales:110.78,partsCost:41.49,tireSales:505.86,tireCost:385.86,totalDiscounts:10.0,laborMargin:61.94,partsMargin:62.55,tireMargin:23.72,elr:91.95,aro:237.86,grossProfit:247.24,gpPercent:34.65,totalSales:713.59,cashCollected:2092.0,totalInvoiced:768.12,ccAmount:2032.0,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:7.5}],totalTechClock:16.5,comebacks:0,notes:"GP% 34.65% worst of month."},
+  {date:"2026-04-21",shop:"Kenmore Ave",invoiceCount:7,billedHours:11.0,laborSales:977.7,partsSales:106.31,partsCost:31.57,tireSales:0,tireCost:0,totalDiscounts:98.87,laborMargin:60.12,partsMargin:49.36,tireMargin:0,elr:83.89,aro:140.73,grossProfit:585.52,gpPercent:59.44,totalSales:985.14,cashCollected:505.77,totalInvoiced:1020.77,ccAmount:371.68,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"ELR $83.89 critically low."},
+  {date:"2026-04-21",shop:"Oliver St",invoiceCount:6,billedHours:13.7,laborSales:1732.25,partsSales:2036.36,partsCost:937.0,tireSales:0,tireCost:0,totalDiscounts:202.95,laborMargin:69.56,partsMargin:48.89,tireMargin:0,elr:126.44,aro:594.28,grossProfit:2101.36,gpPercent:58.93,totalSales:3565.66,cashCollected:2571.47,totalInvoiced:3849.25,ccAmount:2571.47,techHours:[{name:"Peter",hours:8.5},{name:"Bryan",hours:7.5}],totalTechClock:16.0,comebacks:0,notes:"Peter 8.5, Bryan 7.5."},
+  {date:"2026-04-22",shop:"Kenmore Ave",invoiceCount:3,billedHours:3.4,laborSales:455.45,partsSales:517.2,partsCost:240.02,tireSales:0,tireCost:0,totalDiscounts:10.91,laborMargin:68.47,partsMargin:52.59,tireMargin:0,elr:133.96,aro:320.58,grossProfit:578.12,gpPercent:60.11,totalSales:961.74,cashCollected:1986.58,totalInvoiced:1042.22,ccAmount:1876.45,techHours:[{name:"Jack",hours:7.75}],totalTechClock:7.75,comebacks:0,notes:"Jack 7.75."},
+  {date:"2026-04-22",shop:"Oliver St",invoiceCount:4,billedHours:2.3,laborSales:281.65,partsSales:105.4,partsCost:42.47,tireSales:0,tireCost:0,totalDiscounts:5.41,laborMargin:96.27,partsMargin:57.53,tireMargin:0,elr:122.46,aro:95.41,grossProfit:328.67,gpPercent:86.12,totalSales:381.64,cashCollected:1103.95,totalInvoiced:408.82,ccAmount:1061.95,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:7.0}],totalTechClock:16.0,comebacks:0,notes:"Slow. ARO $95 very low."},
+  {date:"2026-04-23",shop:"Kenmore Ave",invoiceCount:3,billedHours:3.0,laborSales:377.4,partsSales:194.9,partsCost:0.0,tireSales:0,tireCost:0,totalDiscounts:0,laborMargin:81.45,partsMargin:100.0,tireMargin:0,elr:125.8,aro:190.77,grossProfit:502.3,gpPercent:87.77,totalSales:572.3,cashCollected:358.71,totalInvoiced:597.66,ccAmount:336.96,techHours:[{name:"Jack",hours:8.0},{name:"Bryan",hours:2.5}],totalTechClock:10.5,comebacks:0,notes:"Parts cost $0 \u2014 verify in system."},
+  {date:"2026-04-23",shop:"Oliver St",invoiceCount:6,billedHours:2.8,laborSales:408.3,partsSales:323.83,partsCost:124.37,tireSales:105.99,tireCost:49.65,totalDiscounts:16.34,laborMargin:76.44,partsMargin:60.83,tireMargin:53.16,elr:142.25,aro:137.38,grossProfit:554.41,gpPercent:67.26,totalSales:824.28,cashCollected:882.44,totalInvoiced:882.44,ccAmount:614.37,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:7.5}],totalTechClock:16.5,comebacks:0,notes:"Peter 9, Bryan 7.5."},
+  {date:"2026-04-24",shop:"Kenmore Ave",invoiceCount:3,billedHours:12.7,laborSales:1807.18,partsSales:1766.48,partsCost:827.3,tireSales:552.0,tireCost:312.0,totalDiscounts:28.51,laborMargin:72.67,partsMargin:52.4,tireMargin:43.48,elr:142.3,aro:1369.72,grossProfit:2466.0,gpPercent:60.01,totalSales:4109.15,cashCollected:2275.07,totalInvoiced:4465.03,ccAmount:2275.07,techHours:[{name:"Jack",hours:8.0}],totalTechClock:8.0,comebacks:0,notes:"ARO $1,370 \u2014 3 big tickets. $2,190 uncollected AR."},
+  {date:"2026-04-24",shop:"Oliver St",invoiceCount:4,billedHours:4.8,laborSales:869.45,partsSales:758.54,partsCost:338.46,tireSales:544.36,tireCost:304.36,totalDiscounts:51.3,laborMargin:84.7,partsMargin:52.14,tireMargin:44.09,elr:181.14,aro:532.76,grossProfit:1347.23,gpPercent:63.22,totalSales:2131.05,cashCollected:6280.8,totalInvoiced:2297.38,ccAmount:1062.82,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,comebacks:0,notes:"Peter 9, Bryan 8. Overcollected \u2014 prior AR."},
+  {date:"2026-04-27",shop:"Kenmore Ave",invoiceCount:7,billedHours:8.5,laborSales:1262.28,partsSales:1219.11,partsCost:523.61,tireSales:0,tireCost:0,totalDiscounts:16.33,cashCollected:0,ccAmount:5287.88,totalInvoiced:2693.02,laborMargin:76.63,partsMargin:57.05,tireMargin:0,elr:148.5,aro:354.48,grossProfit:1662.73,gpPercent:67.01,totalSales:2481.39,comebacks:0,techHours:[{name:"Jack",hours:7.5}],totalTechClock:7.5,notes:"Jack 7.5hrs. Debit journal ($209.62) \u2014 credit to be applied. All card."},
+  {date:"2026-04-27",shop:"Oliver St",invoiceCount:2,billedHours:3.4,laborSales:589.45,partsSales:488.75,partsCost:212.66,tireSales:313.82,tireCost:193.82,totalDiscounts:28.72,cashCollected:379.0,ccAmount:1377.97,totalInvoiced:1526.12,laborMargin:83.71,partsMargin:56.49,tireMargin:38.24,elr:173.37,aro:709.06,grossProfit:911.63,gpPercent:64.25,totalSales:1418.11,comebacks:0,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,notes:"Peter 9, Bryan 8. Simon split tow between Oliver and Kenmore."},
+  {date:"2026-04-28",shop:"Kenmore Ave",invoiceCount:6,billedHours:9.2,laborSales:1389.9,partsSales:1557.9,partsCost:672.97,tireSales:0,tireCost:0,totalDiscounts:31.67,cashCollected:0.0,ccAmount:3179.22,totalInvoiced:3200.22,laborMargin:78.82,partsMargin:56.8,tireMargin:0,elr:151.08,aro:491.3,grossProfit:1980.43,gpPercent:67.18,totalSales:2947.8,comebacks:0,techHours:[],totalTechClock:0,notes:"Jack called off. All card payments."},
+  {date:"2026-04-28",shop:"Oliver St",invoiceCount:5,billedHours:10.9,laborSales:1700.93,partsSales:1511.46,partsCost:769.87,tireSales:0,tireCost:0,totalDiscounts:0,cashCollected:0,ccAmount:4270.37,totalInvoiced:3464.35,laborMargin:77.79,partsMargin:49.06,tireMargin:0,elr:156.05,aro:642.48,grossProfit:2064.77,gpPercent:64.28,totalSales:3212.39,comebacks:0,techHours:[{name:"Peter",hours:9.0},{name:"Bryan",hours:8.0}],totalTechClock:17.0,notes:"Peter 9, Bryan 8. John 9 (writer). Simon 8 tow. All card."}
+];
+// DATA-END
+
+// ============================================================
+// STATE
+// ============================================================
+let records=[], selDate=TODAY, period='day', selWeek=null, selMonth=null;
+let histShop='Kenmore Ave', techRows=[], teamPeriod='day';
+let trendWindow='recent'; // 'recent'=last 6 wks | 'all'
+let lboardPeriod='month';
+
+// ============================================================
+// MATH HELPERS
+// ============================================================
+function adjGP(rec){
+  if(!rec)return 0;
+  const lc=(+(rec.laborSales||0))*(1-(+(rec.laborMargin||0))/100);
+  return(+(rec.grossProfit||0))+lc;
+}
+function ccFee(rec){return(+(rec.ccAmount||0))*0.025;}
+function netProfit(rec,shop){
+  const fixed=SHOP_FIXED[shop]||FIXED_KEN;
+  return adjGP(rec)-fixed-ccFee(rec);
+}
+function fm(v,d=2){if(v==null||v==='')return'—';const n=+v;return(n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmPct(v,d=1){if(v==null)return'—';return(+v).toFixed(d)+'%';}
+function tc(v,t){if(v==null)return'var(--text3)';const n=+v;if(n>=t.elite)return'var(--green)';if(n>=t.good)return'#15803d';if(n>=t.fair)return'var(--orange)';return'var(--red)';}
+function tl(v,t){if(v==null)return'';const n=+v;if(n>=t.elite)return'ELITE';if(n>=t.good)return'TARGET';if(n>=t.fair)return'FAIR';return'POOR';}
+function pillHtml(v,t){
+  if(v==null)return'';
+  const c=tc(v,t),l=tl(v,t);
+  if(!l)return'';
+  const bg=c==='var(--green)'?'var(--green-light)':c==='var(--orange)'?'var(--orange-light)':c==='var(--red)'?'var(--red-light)':'var(--green-light)';
+  return`<span class="pill" style="background:${bg};color:${c}">${l}</span>`;
+}
+function mondayOf(d){const dt=new Date(d+'T12:00:00'),day=dt.getDay(),diff=day===0?-6:1-day;const m=new Date(dt);m.setDate(dt.getDate()+diff);return m.toISOString().slice(0,10);}
+function mondayLabel(d){const dt=new Date(d+'T12:00:00');return(dt.getMonth()+1)+'/'+dt.getDate();}
+function allDates(){return[...new Set(records.map(r=>r.date))].sort();}
+function allWeeks(){return[...new Set(allDates().map(d=>mondayOf(d)))].sort();}
+function allMonths(){return[...new Set(allDates().map(d=>d.slice(0,7)))].sort();}
+
+// ============================================================
+// STORAGE
+// ============================================================
+function loadRecords(){
+  // Always merge SEED into localStorage so nightly updates are never missed.
+  // SEED is authoritative for date+shop pairs it contains; manual entries
+  // (from the Data Entry form) that aren't in SEED are preserved.
+  const seedIndex={};
+  SEED.forEach(r=>{ seedIndex[r.date+'|'+r.shop]=r; });
+  let local=[];
+  try{
+    const s=localStorage.getItem('rcr-dash-v8');
+    if(s){const d=JSON.parse(s);if(Array.isArray(d))local=d;}
+  }catch{}
+  // Start with all SEED records (authoritative)
+  const merged={...seedIndex};
+  // Layer in any localStorage records NOT already in SEED (manual entries)
+  local.forEach(r=>{
+    const k=r.date+'|'+r.shop;
+    if(!merged[k])merged[k]=r;
+  });
+  records=Object.values(merged).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.shop<b.shop?-1:1);
+  saveRecords();
+}
+function saveRecords(){try{localStorage.setItem('rcr-dash-v8',JSON.stringify(records));}catch{}}
+
+// ============================================================
+// PERIOD / DATE LOGIC
+// ============================================================
+function getDatesForPeriod(p,sw,sm){
+  const all=allDates();
+  if(p==='day')return[selDate];
+  if(p==='week'){
+    const w=sw||mondayOf(TODAY);
+    const end=new Date(w+'T12:00:00');end.setDate(end.getDate()+5);
+    const endStr=end.toISOString().slice(0,10);
+    return all.filter(d=>d>=w&&d<endStr);
+  }
+  if(p==='month'){
+    const m=sm||TODAY.slice(0,7);
+    return all.filter(d=>d.slice(0,7)===m);
+  }
+  if(p==='ytd')return all.filter(d=>d>=TODAY.slice(0,4)+'-01-01'&&d<=TODAY);
+  return[selDate];
+}
+
+function aggregateShop(shop,dates){
+  const recs=records.filter(r=>r.shop===shop&&dates.includes(r.date));
+  if(!recs.length)return null;
+  const s=(f,fn)=>recs.reduce((acc,r)=>acc+(fn?fn(r):(+(r[f]||0))),0);
+  const totLS=s('laborSales'),totPS=s('partsSales'),totPC=s('partsCost');
+  const totTS=s('tireSales'),totTC=s('tireCost'),totBH=s('billedHours');
+  const totClock=s('totalTechClock'),totInv=s('invoiceCount');
+  const totRev=s('totalSales'),totDisc=s('totalDiscounts');
+  const totColl=s('cashCollected'),totInvoiced=s('totalInvoiced');
+  const totCB=s('comebacks'),totCC=s('ccAmount');
+  const totGP=recs.reduce((a,r)=>a+adjGP(r),0);
+  const lc=recs.reduce((a,r)=>a+(+r.laborSales||0)*(1-(+r.laborMargin||0)/100),0);
+  const shopFixed=SHOP_FIXED[shop]||FIXED_KEN;
+  const dayCount=recs.length;
+  const fixedTotal=shopFixed*dayCount;
+  const ccFeeTotal=totCC*0.025;
+  const netP=totGP-fixedTotal-ccFeeTotal;
+  const thMap={};
+  recs.forEach(r=>(r.techHours||[]).forEach(t=>{
+    if(!NON_TECHS.has(t.name))thMap[t.name]=(thMap[t.name]||0)+(+t.hours||0);
+  }));
+  // Recalculate totalTechClock using only actual techs
+  const techOnlyClock=Object.values(thMap).reduce((a,h)=>a+h,0);
+  return{
+    invoiceCount:totInv,billedHours:totBH,totalSales:totRev,
+    laborSales:totLS,partsSales:totPS,partsCost:totPC,tireSales:totTS,tireCost:totTC,
+    totalDiscounts:totDisc,cashCollected:totColl,totalInvoiced:totInvoiced,
+    laborMargin:totLS>0?((totLS-lc)/totLS*100):null,
+    partsMargin:totPS>0?((totPS-totPC)/totPS*100):null,
+    tireMargin:totTS>0?((totTS-totTC)/totTS*100):null,
+    elr:totBH>0?(totLS/totBH):null,
+    aro:totInv>0?(totRev/totInv):null,
+    grossProfit:totGP,gpPercent:totRev>0?(totGP/totRev*100):null,
+    techHours:Object.entries(thMap).map(([name,hours])=>({name,hours})),
+    totalTechClock:techOnlyClock,comebacks:totCB,
+    ccAmount:totCC,ccFee:ccFeeTotal,
+    dayCount,fixedTotal,netProfit:netP,
+    arGap:totInvoiced-totColl-totCC,
+    notes:recs.length===1?recs[0].notes:null
+  };
+}
+
+// ============================================================
+// MONTHLY PACING
+// ============================================================
+function renderPacing(){
+  const month=TODAY.slice(0,7);
+  const monthDates=allDates().filter(d=>d.slice(0,7)===month);
+  const totRev=monthDates.reduce((a,d)=>a+records.filter(r=>r.date===d).reduce((s,r)=>s+(+r.totalSales||0),0),0);
+  // Count business days in April 2026 (Mon-Sat)
+  const y=+TODAY.slice(0,4),mo=+TODAY.slice(5,7)-1;
+  const daysInMonth=new Date(y,mo+1,0).getDate();
+  let bizDays=0,bizElapsed=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(y,mo,d);const dow=dt.getDay();
+    if(dow>=1&&dow<=6){bizDays++;if(d<=+TODAY.slice(8,10))bizElapsed++;}
+  }
+  const bizRemaining=bizDays-bizElapsed;
+  const monthGoal=REV_GOAL*bizDays;
+  const pct=Math.min(totRev/monthGoal*100,100);
+  const paceColor=pct>=100?'var(--green)':pct>=(bizElapsed/bizDays*100)?'var(--amber)':'var(--red)';
+  const needed=bizRemaining>0?Math.max(0,(monthGoal-totRev)/bizRemaining):0;
+  const proj=bizElapsed>0?(totRev/bizElapsed)*bizDays:0;
+
+  document.getElementById('pacing-wrap').innerHTML=`
+  <div class="pacing-card mb12">
+    <div class="pacing-main">
+      <div class="pacing-title">April 2026 — Monthly Revenue Pace</div>
+      <div class="pacing-bar-wrap">
+        <div class="pacing-bar" style="width:${pct.toFixed(1)}%;background:${paceColor}"></div>
+      </div>
+      <div class="pacing-stats">
+        <span style="color:${paceColor};font-weight:700">${pct.toFixed(1)}% of goal</span>
+        <span style="color:var(--text3)">${bizElapsed} of ${bizDays} biz days</span>
+      </div>
+    </div>
+    <div class="pacing-items">
+      <div class="pacing-item">
+        <div class="val" style="color:${paceColor}">${fm(totRev,0)}</div>
+        <div class="lbl">MTD Revenue</div>
+      </div>
+      <div class="pacing-item">
+        <div class="val" style="color:var(--text2)">${fm(monthGoal,0)}</div>
+        <div class="lbl">Month Goal</div>
+      </div>
+      <div class="pacing-item">
+        <div class="val" style="color:${needed>REV_GOAL?'var(--red)':needed>REV_GOAL*.85?'var(--orange)':'var(--green)'}">${fm(needed,0)}</div>
+        <div class="lbl">Needed/Day</div>
+      </div>
+      <div class="pacing-item">
+        <div class="val" style="color:${proj>=monthGoal?'var(--green)':'var(--orange)'}">${fm(proj,0)}</div>
+        <div class="lbl">Projected</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// DASHBOARD RENDER
+// ============================================================
+function showTab(id,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='pl')renderPL();
+  if(id==='history')renderHistory();
+  if(id==='team')renderTeam();
+  if(id==='trends')renderTrends();
+  if(id==='leaderboard')renderLeaderboard();
+}
+
+function setPeriod(p){
+  period=p;
+  ['day','week','month','ytd'].forEach(x=>{
+    document.getElementById('pb-'+x)?.classList.toggle('active',x===p);
+  });
+  document.getElementById('date-strip-wrap').style.display=p==='day'?'block':'none';
+  document.getElementById('week-strip-wrap').style.display=p==='week'?'block':'none';
+  document.getElementById('month-strip-wrap').style.display=p==='month'?'block':'none';
+  document.getElementById('period-banner').style.display=p==='ytd'?'flex':'none';
+
+  if(p==='week'){
+    const wks=allWeeks();
+    if(!selWeek||!wks.includes(selWeek))selWeek=wks[wks.length-1];
+    document.getElementById('week-strip').innerHTML=wks.map(w=>
+      `<button class="date-btn${w===selWeek?' active':''}" onclick="selectWeek('${w}')">Wk ${mondayLabel(w)}</button>`
+    ).join('');
+  }
+  if(p==='month'){
+    const months=allMonths();
+    if(!selMonth||!months.includes(selMonth))selMonth=months[months.length-1];
+    const mN={1:'Jan',2:'Feb',3:'Mar',4:'Apr',5:'May',6:'Jun',7:'Jul',8:'Aug',9:'Sep',10:'Oct',11:'Nov',12:'Dec'};
+    document.getElementById('month-strip').innerHTML=months.map(m=>{
+      const [y,mo]=m.split('-');
+      return`<button class="date-btn${m===selMonth?' active':''}" onclick="selectMonth('${m}')">${mN[+mo]} ${y}</button>`;
+    }).join('');
+  }
+  if(p==='ytd'){
+    const dates=getDatesForPeriod('ytd');
+    document.getElementById('banner-label').textContent='YEAR TO DATE';
+    document.getElementById('banner-dates').textContent=dates.length?dates[0]+' → '+dates[dates.length-1]:'No data';
+    document.getElementById('banner-days').textContent=dates.length+' business day'+(dates.length!==1?'s':'');
+  }
+  renderDash();
+}
+
+function selectWeek(w){
+  selWeek=w;
+  document.querySelectorAll('#week-strip .date-btn').forEach(b=>
+    b.classList.toggle('active',b.getAttribute('onclick')===`selectWeek('${w}')`)
+  );
+  renderDash();
+}
+function selectMonth(m){
+  selMonth=m;
+  document.querySelectorAll('#month-strip .date-btn').forEach(b=>
+    b.classList.toggle('active',b.getAttribute('onclick')===`selectMonth('${m}')`)
+  );
+  renderDash();
+}
+function selectDate(d){selDate=d;renderDash();}
+
+function renderDash(){
+  // Date strip
+  document.getElementById('date-strip').innerHTML=allDates().map(d=>
+    `<button class="date-btn${d===selDate?' active':''}" onclick="selectDate('${d}')">${d.slice(5)}${d===TODAY?' ★':''}</button>`
+  ).join('');
+
+  const dates=getDatesForPeriod(period,selWeek,selMonth);
+  const kenAgg=aggregateShop('Kenmore Ave',dates);
+  const olvAgg=aggregateShop('Oliver St',dates);
+
+  const kRev=+(kenAgg?.totalSales||0), oRev=+(olvAgg?.totalSales||0), tot=kRev+oRev;
+  const dayCount=dates.length||1;
+  const goalForPeriod=REV_GOAL*dayCount;
+  const pct=Math.min(tot/goalForPeriod*100,100);
+  const over=tot>=goalForPeriod;
+  const rc=over?'var(--green)':pct>=70?'var(--orange)':'var(--red)';
+
+  const kGP=+(kenAgg?.grossProfit||0), oGP=+(olvAgg?.grossProfit||0);
+  const kFixed=kenAgg?.fixedTotal||FIXED_KEN*dayCount;
+  const oFixed=olvAgg?.fixedTotal||FIXED_OLV*dayCount;
+  const kCC=kenAgg?.ccFee||0, oCC=olvAgg?.ccFee||0;
+  const kNet=kGP-kFixed-kCC, oNet=oGP-oFixed-oCC, combNet=kNet+oNet;
+
+  const periodLabel=period==='day'?selDate
+    :period==='week'?'Wk of '+mondayLabel(selWeek||mondayOf(TODAY))
+    :period==='month'?(selMonth||TODAY.slice(0,7))
+    :'YTD';
+
+  function netBadge(label,net,fixed,days,ccfee,shop){
+    const pos=net>=0;
+    const bg=pos?'var(--green-light)':'var(--red-light)';
+    const border=pos?'#86efac':'#fca5a5';
+    const color=pos?'var(--green)':'var(--red)';
+    const fixedLabel=days>1?fm(fixed,0)+' ('+days+'d)':fm(fixed,0);
+    return`<div class="net-badge" style="background:${bg};border:1px solid ${border}">
+      <div class="net-lbl" style="color:${pos?'var(--green)':'var(--red)'}">${label}</div>
+      <div class="net-val" style="color:${color}">${fm(net)}</div>
+      <div class="net-detail">${fixedLabel} fixed${ccfee>0?' · CC −'+fm(ccfee,0):''}</div>
+    </div>`;
+  }
+
+  document.getElementById('combined-wrap').innerHTML=`
+  <div class="summary-card mb12">
+    <div class="card-title">Combined Revenue — ${periodLabel}</div>
+    <div class="summary-rev-row">
+      <div>
+        <div class="rev-label">Net Revenue (Ex-Tax)</div>
+        <div class="rev-big" style="color:${rc}">${fm(tot)}</div>
+      </div>
+      <div class="rev-goal">
+        <div class="goal-label">Goal: ${dayCount>1?fm(goalForPeriod,0)+' ('+dayCount+'d)':fm(REV_GOAL,0)}</div>
+        <div class="goal-val" style="color:${over?'var(--green)':'var(--red)'}">${over?'+':'-'}${fm(Math.abs(tot-goalForPeriod),0)}</div>
+      </div>
+    </div>
+    <div class="pbar"><div class="pbar-fill" style="width:${pct.toFixed(1)}%;background:${rc}"></div></div>
+    <div class="rev-breakdown">
+      <span><strong>KEN</strong> ${fm(kRev,0)} &nbsp;·&nbsp; <strong>OLV</strong> ${fm(oRev,0)}</span>
+      <span style="color:${rc};font-weight:700">${pct.toFixed(0)}% of goal</span>
+    </div>
+    <div class="net-row" style="margin-top:10px">
+      ${netBadge('KENMORE NET',kNet,kFixed,dayCount,kCC)}
+      ${netBadge('OLIVER NET',oNet,oFixed,dayCount,oCC)}
+      ${netBadge('COMBINED NET',combNet,kFixed+oFixed,dayCount,kCC+oCC)}
+    </div>
+  </div>`;
+
+  document.getElementById('shop-cards').innerHTML=
+    shopCard('Kenmore Ave',kenAgg,dayCount)+shopCard('Oliver St',olvAgg,dayCount);
+
+  document.getElementById('hdr-date').textContent='Last updated: '+TODAY;
+  document.getElementById('hdr-stats').textContent=records.length+' records · KEN $1,220 | OLV $1,680 fixed · 2.5% CC fee';
+}
+
+function shopCard(shop,rec,dayCount){
+  if(!rec)return`<div class="shop-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--text3)">No data for this period</div>`;
+
+  const clk=+(rec.totalTechClock||0);
+  const prod=clk&&rec.billedHours?(+rec.billedHours/clk*100):null;
+  const pc=prod!=null?tc(prod,T.prod):'var(--text3)';
+  const shopGoal=(REV_GOAL/2)*dayCount;
+  const revPct=Math.min(+(rec.totalSales||0)/shopGoal*100,100);
+  const rc2=revPct>=100?'var(--green)':revPct>=70?'var(--orange)':'var(--red)';
+  const arGap=(+(rec.totalInvoiced||0))-(+(rec.cashCollected||0))-(+(rec.ccAmount||0));
+  const arColor=arGap>200?'var(--red)':arGap>50?'var(--orange)':arGap<-50?'var(--amber)':'var(--green)';
+  const shopFixed=SHOP_FIXED[shop]||FIXED_KEN;
+  const net=rec.netProfit;
+  const cbRate=rec.invoiceCount>0?((+rec.comebacks||0)/+rec.invoiceCount*100):0;
+
+  function kbox(label,val,t,pre='',suf='',dec=1){
+    const c=val!=null?tc(val,t):'var(--text3)';
+    const d=t&&val!=null?(+val-t.good):null;
+    const dstr=d!=null?`<span class="kpi-delta" style="color:${d>=0?'var(--green)':'var(--red)'}">${d>=0?'▲':'▼'}${Math.abs(d).toFixed(1)}</span>`:'';
+    return`<div class="kpi-box">
+      <div class="kpi-lbl">${label}</div>
+      <div class="kpi-val" style="color:${c}">${val!=null?pre+(+val).toFixed(dec)+suf:'—'}</div>
+      ${pillHtml(val,t)}${dstr}
+    </div>`;
+  }
+
+  // Tech rows
+  const techRows2=(rec.techHours||[]).map(t=>{
+    const techBilled=clk>0?(+rec.billedHours/clk*(+t.hours)):null; // estimated
+    return`<tr>
+      <td style="font-weight:600">${t.name}</td>
+      <td>${(+t.hours).toFixed(1)}h</td>
+      <td style="color:${prod!=null?tc(prod,T.prod):'var(--text3)'}">${prod!=null?prod.toFixed(0)+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  return`<div class="shop-card">
+    <div class="shop-card-header">
+      <div>
+        <div class="shop-card-name">${shop.toUpperCase()}</div>
+        <div class="shop-card-sub">${fm(shopFixed,0)}/day fixed · 2.5% CC${dayCount>1?' · '+dayCount+'d':''}</div>
+      </div>
+      <div class="shop-card-gp">
+        <div class="gp-val">${fm(rec.grossProfit)}</div>
+        <div class="gp-lbl">Adj Gross Profit</div>
+      </div>
+    </div>
+    <div class="shop-card-body">
+
+      <!-- Revenue bar -->
+      <div class="shop-section">
+        <div class="shop-section-title">Revenue vs $${Math.round(REV_GOAL/2).toLocaleString()} goal</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:18px;font-weight:800;color:${rc2};font-variant-numeric:tabular-nums">${fm(rec.totalSales)}</span>
+          <span style="font-size:10px;color:${rc2};font-weight:600">${revPct.toFixed(0)}%</span>
+        </div>
+        <div class="pbar"><div class="pbar-fill" style="width:${revPct.toFixed(1)}%;background:${rc2}"></div></div>
+      </div>
+
+      <!-- Net profit -->
+      <div style="background:${net>=0?'var(--green-light)':'var(--red-light)'};border:1px solid ${net>=0?'#86efac':'#fca5a5'};border-radius:6px;padding:8px 10px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'};letter-spacing:1px">NET PROFIT</span>
+        <span style="font-size:18px;font-weight:800;color:${net>=0?'var(--green)':'var(--red)'};font-variant-numeric:tabular-nums">${fm(net)}</span>
+      </div>
+
+      <!-- KPIs -->
+      <div class="shop-section">
+        <div class="shop-section-title">Key Performance Indicators</div>
+        <div class="kpi-grid">
+          ${kbox('ELR',rec.elr,T.elr,'$','',2)}
+          ${kbox('Parts %',rec.partsMargin,T.parts,'','%',1)}
+          ${kbox('Labor %',rec.laborMargin,T.labor,'','%',1)}
+          ${kbox('Tire %',rec.tireMargin&&rec.tireSales?rec.tireMargin:null,T.tire,'','%',1)}
+          ${kbox('ARO',rec.aro,T.aro,'$','',2)}
+          ${kbox('GP %',rec.gpPercent,T.gp,'','%',1)}
+        </div>
+      </div>
+
+      <!-- AR -->
+      <div class="shop-section">
+        <div class="shop-section-title">Accounts Receivable</div>
+        <div class="ar-grid">
+          <div class="ar-box">
+            <div class="ar-val">${fm(rec.totalInvoiced,0)}</div>
+            <div class="ar-lbl">Invoiced</div>
+          </div>
+          <div class="ar-box">
+            <div class="ar-val">${fm((+(rec.cashCollected||0))+(+(rec.ccAmount||0)),0)}</div>
+            <div class="ar-lbl">Total Received</div>
+          </div>
+          <div class="ar-box" style="border-color:${arColor};background:${arGap>50?'var(--red-light)':arGap<-50?'var(--amber-light)':'var(--green-light)'}">
+            <div class="ar-val" style="color:${arColor}">${arGap>50?'-'+fm(arGap,0):arGap<-50?'+'+fm(Math.abs(arGap),0):'✓ Clear'}</div>
+            <div class="ar-lbl">${arGap>50?'Outstanding':arGap<-50?'Overcollected':'Status'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Productivity -->
+      <div class="shop-section">
+        <div class="shop-section-title">Productivity & Tech Hours</div>
+        ${prod!=null?`
+        <div class="prod-row">
+          <span style="font-size:10px;color:var(--text3)">${(+rec.billedHours).toFixed(2)}h billed / ${clk.toFixed(1)}h clock</span>
+          <span class="prod-pct" style="color:${pc}">${prod.toFixed(1)}% ${pillHtml(prod,T.prod)}</span>
+        </div>
+        <div class="pbar" style="margin-bottom:8px"><div class="pbar-fill" style="width:${Math.min(prod,100).toFixed(1)}%;background:${pc}"></div></div>
+        `:'<div style="font-size:10px;color:var(--text3);margin-bottom:6px">No tech hours logged</div>'}
+        ${techRows2?`<table class="tech-mini-table">
+          <tr><th>Tech</th><th>Clock Hrs</th><th>Prod %</th></tr>
+          ${techRows2}
+        </table>`:''}
+      </div>
+
+      <!-- Stats row -->
+      <div class="shop-section">
+        <div class="shop-section-title">Daily Stats</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <div class="ar-box"><div class="ar-val">${rec.invoiceCount||0}</div><div class="ar-lbl">Invoices</div></div>
+          <div class="ar-box"><div class="ar-val" style="color:${(+rec.totalDiscounts||0)>100?'var(--red)':(+rec.totalDiscounts||0)>50?'var(--orange)':'var(--text)'}">${fm(rec.totalDiscounts,0)}</div><div class="ar-lbl">Discounts</div></div>
+          <div class="ar-box"><div class="ar-val" style="color:${cbRate>5?'var(--red)':cbRate>2?'var(--orange)':'var(--green)'}">${rec.comebacks||0}</div><div class="ar-lbl">Comebacks</div></div>
+          <div class="ar-box"><div class="ar-val" style="color:${cbRate>5?'var(--red)':cbRate>2?'var(--orange)':'var(--green)'}">${cbRate.toFixed(1)}%</div><div class="ar-lbl">CB Rate</div></div>
+        </div>
+      </div>
+
+      ${rec.notes?`<div class="notes-row">📋 ${rec.notes}</div>`:''}
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// TEAM TAB
+// ============================================================
+function setTeamPeriod(p){
+  teamPeriod=p;
+  ['day','week','month','ytd'].forEach(x=>document.getElementById('tpb-'+x)?.classList.toggle('active',x===p));
+  renderTeam();
+}
+
+function renderTeam(){
+  const dates=getDatesForPeriod(teamPeriod,selWeek,selMonth);
+  const periodLabel=teamPeriod==='day'?selDate
+    :teamPeriod==='week'?'Wk of '+mondayLabel(selWeek||mondayOf(TODAY))
+    :teamPeriod==='month'?(selMonth||TODAY.slice(0,7)):'YTD';
+
+  // Aggregate per tech across all shops
+  const techMap={}; // name -> {clockHours, shop, days}
+  const recs=records.filter(r=>dates.includes(r.date));
+  recs.forEach(r=>{
+    (r.techHours||[]).forEach(t=>{
+      if(!t.name||NON_TECHS.has(t.name))return; // skip writers & tow
+      if(!techMap[t.name])techMap[t.name]={clock:0,shops:new Set(),records:[]};
+      techMap[t.name].clock+=(+t.hours||0);
+      techMap[t.name].shops.add(r.shop);
+      techMap[t.name].records.push(r);
+    });
+  });
+
+  // Per-shop aggregates for productivity context
+  const kenAgg=aggregateShop('Kenmore Ave',dates);
+  const olvAgg=aggregateShop('Oliver St',dates);
+
+  // Build tech rows
+  const techEntries=Object.entries(techMap).sort((a,b)=>b[1].clock-a[1].clock);
+
+  // Comeback summary
+  const totalCB=recs.reduce((a,r)=>a+(+r.comebacks||0),0);
+  const totalInv=recs.reduce((a,r)=>a+(+r.invoiceCount||0),0);
+  const cbRate=totalInv>0?(totalCB/totalInv*100):0;
+
+  // Per-shop comeback by date (last 10 days for trend)
+  const last10=allDates().slice(-10);
+  const cbTrend=last10.map(d=>{
+    const dr=records.filter(r=>r.date===d);
+    return{date:d,cb:dr.reduce((a,r)=>a+(+r.comebacks||0),0),inv:dr.reduce((a,r)=>a+(+r.invoiceCount||0),0)};
+  });
+
+  let techHTML='';
+  if(techEntries.length){
+    const rows=techEntries.map(([name,data])=>{
+      // Try to attribute billed hours: if tech only at one shop, use that shop's prod
+      const shopArr=[...data.shops];
+      let billedEst=null,prodEst=null;
+      if(shopArr.length===1){
+        const sa=shopArr[0]==='Kenmore Ave'?kenAgg:olvAgg;
+        if(sa&&sa.totalTechClock>0){
+          billedEst=sa.billedHours*(data.clock/sa.totalTechClock);
+          prodEst=billedEst/data.clock*100;
+        }
+      }
+      const pc2=prodEst!=null?tc(prodEst,T.prod):'var(--text3)';
+      return`<tr>
+        <td>${name}</td>
+        <td><span style="font-size:10px;color:var(--text3)">${[...data.shops].join(', ')}</span></td>
+        <td>${data.clock.toFixed(1)}h</td>
+        <td>${billedEst!=null?billedEst.toFixed(2)+'h':'—'}</td>
+        <td style="color:${pc2};font-weight:700">${prodEst!=null?prodEst.toFixed(1)+'% '+pillHtml(prodEst,T.prod):'—'}</td>
+      </tr>`;
+    }).join('');
+
+    techHTML=`<div class="card mb12">
+      <div class="card-title blue">Tech Efficiency — ${periodLabel}</div>
+      <table class="team-table">
+        <thead><tr><th style="text-align:left">Tech</th><th style="text-align:left">Shop(s)</th><th>Clock Hrs</th><th>Est. Billed</th><th>Productivity</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  } else {
+    techHTML=`<div class="card mb12" style="color:var(--text3);text-align:center;padding:40px">No tech data for this period</div>`;
+  }
+
+  // Comeback trend table
+  const trendHTML=`<div class="card mb12">
+    <div class="card-title">Comeback & Quality Tracker</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      <div class="ar-box">
+        <div class="ar-val" style="font-size:22px;color:${cbRate>5?'var(--red)':cbRate>2?'var(--orange)':'var(--green)'}">${totalCB}</div>
+        <div class="ar-lbl">Total Comebacks</div>
+      </div>
+      <div class="ar-box">
+        <div class="ar-val" style="font-size:22px">${totalInv}</div>
+        <div class="ar-lbl">Total Invoices</div>
+      </div>
+      <div class="ar-box">
+        <div class="ar-val" style="font-size:22px;color:${cbRate>5?'var(--red)':cbRate>2?'var(--orange)':'var(--green)'}">${cbRate.toFixed(2)}%</div>
+        <div class="ar-lbl">Comeback Rate</div>
+      </div>
+    </div>
+    <div class="card-title" style="margin-bottom:8px">Last 10 Business Days</div>
+    <table class="team-table" style="font-size:11px">
+      <thead><tr><th style="text-align:left">Date</th><th>Invoices</th><th>Comebacks</th><th>CB Rate</th></tr></thead>
+      <tbody>${cbTrend.map((row,i)=>{
+        const r2=row.inv>0?(row.cb/row.inv*100):0;
+        return`<tr style="background:${i%2?'var(--surface2)':''}">
+          <td style="text-align:left;color:var(--text2)">${row.date}</td>
+          <td>${row.inv}</td>
+          <td style="color:${row.cb>0?'var(--red)':'var(--text3)'}">${row.cb}</td>
+          <td style="color:${r2>5?'var(--red)':r2>2?'var(--orange)':'var(--green)'};font-weight:${row.cb>0?'700':'400'}">${row.cb>0?r2.toFixed(1)+'%':'—'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>`;
+
+  document.getElementById('team-content').innerHTML=techHTML+trendHTML;
+}
+
+// ============================================================
+// P&L TAB
+// ============================================================
+function renderPL(){
+  const days=allDates();
+  const month=days.length?days[0].slice(0,7):'';
+
+  // Weekly map
+  const wkMap={};
+  days.forEach(d=>{
+    const k=mondayOf(d);
+    const dr=records.filter(r=>r.date===d);
+    const kRec=dr.find(r=>r.shop==='Kenmore Ave'),oRec=dr.find(r=>r.shop==='Oliver St');
+    const rev=dr.reduce((s,r)=>s+(+r.totalSales||0),0);
+    const kGP=adjGP(kRec),oGP=adjGP(oRec);
+    const kCC=(+(kRec?.ccAmount||0))*.025,oCC=(+(oRec?.ccAmount||0))*.025;
+    const kNet=kGP-FIXED_KEN-kCC,oNet=oGP-FIXED_OLV-oCC;
+    if(!wkMap[k])wkMap[k]={days:0,rev:0,kNet:0,oNet:0};
+    wkMap[k].days++;wkMap[k].rev+=rev;wkMap[k].kNet+=kNet;wkMap[k].oNet+=oNet;
+  });
+
+  const plKen=aggregateShop('Kenmore Ave',days);
+  const plOlv=aggregateShop('Oliver St',days);
+  const totRev=(plKen?.totalSales||0)+(plOlv?.totalSales||0);
+  const totGP=(plKen?.grossProfit||0)+(plOlv?.grossProfit||0);
+  const totFixed=(plKen?.fixedTotal||0)+(plOlv?.fixedTotal||0);
+  const totCC=(plKen?.ccFee||0)+(plOlv?.ccFee||0);
+  const totKNet=plKen?.netProfit||0,totONet=plOlv?.netProfit||0;
+  const totNet=totKNet+totONet;
+
+  const nc=v=>v>=0?'var(--green)':'var(--red)';
+  const fmN=v=>v>=0?fm(v):'-'+fm(Math.abs(v));
+
+  const wkHTML=Object.entries(wkMap).sort().map(([k,w])=>`
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div style="font-weight:700">Week of ${k}</div>
+          <div style="font-size:10px;color:var(--text3)">${w.days} days · Rev: <span style="color:${w.rev>=w.days*REV_GOAL?'var(--green)':'var(--orange)'};font-weight:600">${fm(w.rev,0)}</span></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;color:var(--text3);letter-spacing:1px">COMBINED NET</div>
+          <div style="font-size:17px;font-weight:800;color:${nc(w.kNet+w.oNet)}">${fmN(w.kNet+w.oNet)}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:7px 10px">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:2px;letter-spacing:1px">KENMORE NET</div>
+          <div style="font-weight:700;color:${nc(w.kNet)}">${fmN(w.kNet)}</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:7px 10px">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:2px;letter-spacing:1px">OLIVER NET</div>
+          <div style="font-weight:700;color:${nc(w.oNet)}">${fmN(w.oNet)}</div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  const dailyRows=days.map((d,i)=>{
+    const dr=records.filter(r=>r.date===d);
+    const kRec=dr.find(r=>r.shop==='Kenmore Ave'),oRec=dr.find(r=>r.shop==='Oliver St');
+    const rev=dr.reduce((s,r)=>s+(+r.totalSales||0),0);
+    const kGP=adjGP(kRec),oGP=adjGP(oRec);
+    const kCC=(+(kRec?.ccAmount||0))*.025,oCC=(+(oRec?.ccAmount||0))*.025;
+    const kNet=kGP-FIXED_KEN-kCC,oNet=oGP-FIXED_OLV-oCC;
+    const vs=rev-REV_GOAL;
+    return`<tr style="background:${i%2?'var(--surface2)':''}">
+      <td style="color:var(--text2)">${d}</td>
+      <td style="font-weight:600;color:${rev>=REV_GOAL?'var(--green)':'var(--orange)'}">${fm(rev)}</td>
+      <td style="color:${vs>=0?'var(--green)':'var(--red)'}">${vs>=0?'+':'-'}${fm(Math.abs(vs))}</td>
+      <td style="color:var(--red)">${kCC+oCC>0?'-'+fm(kCC+oCC):'—'}</td>
+      <td style="color:${nc(kNet)}">${fmN(kNet)}</td>
+      <td style="color:${nc(oNet)}">${fmN(oNet)}</td>
+      <td style="font-weight:700;color:${nc(kNet+oNet)}">${fmN(kNet+oNet)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('pl-content').innerHTML=`
+  <div class="card mb12" style="border-top:3px solid var(--amber)">
+    <div class="card-title amber">MTD Summary — ${days.length} Business Days</div>
+    <div class="grid4" style="margin-bottom:12px">
+      <div class="kpi-box"><div class="kpi-lbl">Net Revenue</div><div class="kpi-val" style="color:${totRev>=days.length*REV_GOAL?'var(--green)':'var(--orange)'}">${fm(totRev)}</div><div style="font-size:9px;color:var(--text3)">Goal: ${fm(days.length*REV_GOAL)}</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">Gross Profit</div><div class="kpi-val" style="color:var(--green)">${fm(totGP)}</div><div style="font-size:9px;color:var(--text3)">KEN ${fm(plKen?.grossProfit||0,0)} · OLV ${fm(plOlv?.grossProfit||0,0)}</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">Fixed Costs</div><div class="kpi-val" style="color:var(--red)">${fm(totFixed)}</div><div style="font-size:9px;color:var(--text3)">KEN ${fm(plKen?.fixedTotal||0,0)} · OLV ${fm(plOlv?.fixedTotal||0,0)}</div></div>
+      <div class="kpi-box"><div class="kpi-lbl">CC Fees (2.5%)</div><div class="kpi-val" style="color:var(--red)">${fm(totCC)}</div><div style="font-size:9px;color:var(--text3)">KEN ${fm(plKen?.ccFee||0,0)} · OLV ${fm(plOlv?.ccFee||0,0)}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      ${[['KENMORE NET PROFIT',totKNet,plKen],['OLIVER NET PROFIT',totONet,plOlv],['COMBINED NET PROFIT',totNet,null]].map(([lbl,net])=>`
+        <div style="background:${net>=0?'var(--green-light)':'var(--red-light)'};border:1px solid ${net>=0?'#86efac':'#fca5a5'};padding:12px;border-radius:7px;text-align:center">
+          <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:${net>=0?'var(--green)':'var(--red)'};margin-bottom:6px">${lbl}</div>
+          <div style="font-size:22px;font-weight:800;color:${net>=0?'var(--green)':'var(--red)'}">${fmN(net)}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="card mb12">
+    <div class="card-title">Weekly Breakdown</div>
+    ${wkHTML}
+  </div>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <div style="padding:14px 14px 8px"><div class="card-title">Daily P&amp;L · KEN $1,220 | OLV $1,680 fixed</div></div>
+    <table class="pl-table">
+      <thead><tr><th style="text-align:left">Date</th><th>Net Rev</th><th>vs $5,100</th><th>CC Fee</th><th>KEN Net</th><th>OLV Net</th><th>Combined</th></tr></thead>
+      <tbody>${dailyRows}</tbody>
+    </table>
+  </div>`;
+}
+
+// ============================================================
+// HISTORY TAB
+// ============================================================
+function setHistShop(s){
+  histShop=s;
+  document.getElementById('ht-ken').classList.toggle('active',s==='Kenmore Ave');
+  document.getElementById('ht-olv').classList.toggle('active',s==='Oliver St');
+  renderHistory();
+}
+
+function renderHistory(){
+  const rows=records.filter(r=>r.shop===histShop).slice(-20).reverse();
+  const sf=SHOP_FIXED[histShop]||FIXED_KEN;
+  if(!rows.length){
+    document.getElementById('hist-table').innerHTML='<tr><td colspan="12" style="padding:40px;text-align:center;color:var(--text3)">No records</td></tr>';
+    return;
+  }
+  const thead=`<thead><tr style="background:var(--surface2)">
+    <th style="text-align:left;padding:10px 10px">Date</th>
+    <th>Inv</th><th>Net Rev</th><th>Prod%</th><th>ELR</th><th>ARO</th>
+    <th>Parts%</th><th>Labor%</th><th>GP%</th><th>Adj GP$</th><th>Net Profit</th><th>Disc</th>
+  </tr></thead>`;
+  const tbody=rows.map((r,i)=>{
+    const clk=+(r.totalTechClock||0),p=clk&&r.billedHours?((+r.billedHours/clk)*100).toFixed(1):null;
+    const net=adjGP(r)-sf-(+(r.ccAmount||0))*.025;
+    const revOk=+(r.totalSales||0)>=(REV_GOAL/2);
+    return`<tr style="background:${i%2?'var(--surface2)':''}">
+      <td style="padding:7px 10px;font-size:11px;color:var(--text2);white-space:nowrap">${r.date}</td>
+      <td style="padding:7px 6px;text-align:right">${r.invoiceCount||0}</td>
+      <td style="padding:7px 6px;text-align:right;font-weight:600;color:${revOk?'var(--green)':'var(--orange)'}">${r.totalSales?fm(+r.totalSales,0):'—'}</td>
+      <td style="padding:7px 6px;text-align:right;color:${p?tc(p,T.prod):'var(--text3)'}">${p?p+'%':'—'}</td>
+      <td style="padding:7px 6px;text-align:right;color:${tc(r.elr,T.elr)}">${r.elr?'$'+(+r.elr).toFixed(0):'—'}</td>
+      <td style="padding:7px 6px;text-align:right;color:${tc(r.aro,T.aro)}">${r.aro?'$'+(+r.aro).toFixed(0):'—'}</td>
+      <td style="padding:7px 6px;text-align:right;color:${tc(r.partsMargin,T.parts)}">${r.partsMargin?(+r.partsMargin).toFixed(1)+'%':'—'}</td>
+      <td style="padding:7px 6px;text-align:right;color:${tc(r.laborMargin,T.labor)}">${r.laborMargin?(+r.laborMargin).toFixed(1)+'%':'—'}</td>
+      <td style="padding:7px 6px;text-align:right;color:${tc(r.gpPercent,T.gp)}">${r.gpPercent?(+r.gpPercent).toFixed(1)+'%':'—'}</td>
+      <td style="padding:7px 6px;text-align:right;font-variant-numeric:tabular-nums">${fm(adjGP(r))}</td>
+      <td style="padding:7px 6px;text-align:right;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?fm(net):'-'+fm(Math.abs(net))}</td>
+      <td style="padding:7px 6px;text-align:right;color:${(+r.totalDiscounts||0)>50?'var(--orange)':'var(--text3)'}">${r.totalDiscounts?fm(+r.totalDiscounts,0):'$0'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('hist-table').innerHTML=thead+'<tbody>'+tbody+'</tbody>';
+}
+
+// ============================================================
+// DATA ENTRY
+// ============================================================
+function initEntry(){document.getElementById('e-date').value=TODAY;addTech();addTech();}
+function addTech(){techRows.push({name:'',hours:''});renderTechRows();}
+function removeTech(i){techRows.splice(i,1);renderTechRows();}
+function renderTechRows(){
+  document.getElementById('tech-rows').innerHTML=techRows.map((t,i)=>
+    `<div class="tech-row">
+      <input placeholder="Tech name" value="${t.name}" oninput="techRows[${i}].name=this.value;updateTechTotal()">
+      <input type="number" step="0.5" placeholder="Hours" value="${t.hours}" oninput="techRows[${i}].hours=this.value;updateTechTotal()">
+      <button class="btn-del" onclick="removeTech(${i})">✕</button>
+    </div>`
+  ).join('');
+  updateTechTotal();
+}
+function updateTechTotal(){
+  const tot=techRows.reduce((s,t)=>s+(+t.hours||0),0);
+  document.getElementById('tech-total').textContent=tot?`Total tech clock: ${tot.toFixed(1)}h`:'';
+}
+function saveEntry(){
+  const date=document.getElementById('e-date').value;
+  const shop=document.getElementById('e-shop').value;
+  if(!date||!shop)return alert('Date and shop required');
+  const flds=['invoiceCount','totalSales','laborSales','partsSales','partsCost','tireSales','tireCost',
+    'totalDiscounts','cashCollected','totalInvoiced','ccAmount','laborMargin','partsMargin','tireMargin',
+    'elr','aro','grossProfit','gpPercent','billedHours','comebacks'];
+  const rec={date,shop};
+  flds.forEach(f=>{const v=document.getElementById('f-'+f)?.value;if(v!=='')rec[f]=+v;});
+  rec.notes=document.getElementById('f-notes').value;
+  rec.techHours=techRows.filter(t=>t.name&&t.hours).map(t=>({name:t.name,hours:+t.hours}));
+  rec.totalTechClock=rec.techHours.reduce((s,t)=>s+(+t.hours||0),0);
+  records=[...records.filter(r=>!(r.date===date&&r.shop===shop)),rec].sort((a,b)=>a.date<b.date?-1:1);
+  saveRecords();
+  const btn=document.getElementById('save-btn');
+  btn.className='btn-saved';btn.textContent='✓ SAVED';
+  setTimeout(()=>{btn.className='btn-gold';btn.textContent='SAVE ENTRY';},2000);
+  selDate=date;renderDash();
+}
+
+
+// ============================================================
+// SVG CHART HELPERS
+// ============================================================
+function svgBar(series,labels,opts={}){
+  const W=560,H=opts.H||200;
+  const p={t:14,r:12,b:34,l:52};
+  const cW=W-p.l-p.r,cH=H-p.t-p.b;
+  const n=labels.length,s=series.length;
+  if(!n)return'<div style="color:var(--text3);text-align:center;padding:30px;font-size:11px">Not enough data yet</div>';
+  const allV=series.flatMap(d=>d.values).filter(v=>v!=null&&v>=0);
+  if(!allV.length)return'<div style="color:var(--text3);text-align:center;padding:30px;font-size:11px">No data</div>';
+  const yMax=opts.yMax||Math.max(...allV)*1.18;
+  const sy=v=>p.t+cH-(Math.max(v,0)/yMax)*cH;
+  const gW=cW/n;
+  const bW=Math.min((gW-6)/s,32);
+  const ticks=5;
+  let out='';
+  // grid
+  for(let i=0;i<ticks;i++){
+    const v=yMax*i/(ticks-1);const y=sy(v);
+    const lbl=v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+Math.round(v);
+    out+=`<line x1="${p.l}" y1="${y.toFixed(1)}" x2="${W-p.r}" y2="${y.toFixed(1)}" stroke="#e2e8f0" stroke-dasharray="3,2"/>`;
+    out+=`<text x="${(p.l-4).toFixed(1)}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="#94a3b8">${lbl}</text>`;
+  }
+  // goal line
+  if(opts.goal!=null){const gy=sy(opts.goal);
+    out+=`<line x1="${p.l}" y1="${gy.toFixed(1)}" x2="${W-p.r}" y2="${gy.toFixed(1)}" stroke="#d97706" stroke-dasharray="5,3" stroke-width="1.5"/>`;
+    out+=`<text x="${(W-p.r+3).toFixed(1)}" y="${(gy+3.5).toFixed(1)}" font-size="8" fill="#d97706" font-weight="700">GOAL</text>`;
+  }
+  // bars + x labels
+  labels.forEach((lbl,i)=>{
+    const totalBW=s*bW+(s-1)*2;
+    const x0=p.l+i*gW+(gW-totalBW)/2;
+    series.forEach((sr,si)=>{
+      const v=sr.values[i];if(v==null)return;
+      const x=x0+si*(bW+2);const y=sy(v);const h=cH-(y-p.t);
+      out+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bW.toFixed(1)}" height="${Math.max(h,1).toFixed(1)}" fill="${sr.color}" rx="2" opacity="0.85"/>`;
+    });
+    out+=`<text x="${(p.l+i*gW+gW/2).toFixed(1)}" y="${(H-5).toFixed(1)}" text-anchor="middle" font-size="9" fill="#94a3b8">${lbl}</text>`;
+  });
+  return`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">${out}</svg>`;
+}
+
+function svgLine(series,labels,opts={}){
+  const W=560,H=opts.H||160;
+  const p={t:14,r:16,b:34,l:50};
+  const cW=W-p.l-p.r,cH=H-p.t-p.b;
+  const n=labels.length;
+  if(n<2)return'<div style="color:var(--text3);text-align:center;padding:30px;font-size:11px">Need more weeks of data</div>';
+  const allV=series.flatMap(d=>d.values).filter(v=>v!=null);
+  if(!allV.length)return'<div style="color:var(--text3);text-align:center;padding:30px;font-size:11px">No data</div>';
+  const rawMin=Math.min(...allV),rawMax=Math.max(...allV);
+  const spread=(rawMax-rawMin)||5;
+  const yMin=opts.yMin!=null?opts.yMin:Math.max(0,rawMin-spread*0.2);
+  const yMax=opts.yMax!=null?opts.yMax:rawMax+spread*0.2;
+  const sx=i=>p.l+(n>1?(i/(n-1))*cW:cW/2);
+  const sy=v=>p.t+cH-((v-yMin)/(yMax-yMin||1))*cH;
+  const ticks=4;
+  let out='';
+  // grid
+  for(let i=0;i<=ticks;i++){
+    const v=yMin+(yMax-yMin)*i/ticks;const y=sy(v);
+    const lbl=opts.pct?v.toFixed(0)+'%':'$'+Math.round(v);
+    out+=`<line x1="${p.l}" y1="${y.toFixed(1)}" x2="${W-p.r}" y2="${y.toFixed(1)}" stroke="#e2e8f0" stroke-dasharray="3,2"/>`;
+    out+=`<text x="${(p.l-4).toFixed(1)}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="#94a3b8">${lbl}</text>`;
+  }
+  // goal
+  if(opts.goal!=null){const gy=sy(opts.goal);
+    out+=`<line x1="${p.l}" y1="${gy.toFixed(1)}" x2="${W-p.r}" y2="${gy.toFixed(1)}" stroke="#d97706" stroke-dasharray="4,3" stroke-width="1.5"/>`;
+    out+=`<text x="${(W-p.r+3).toFixed(1)}" y="${(gy+3.5).toFixed(1)}" font-size="8" fill="#d97706" font-weight="700">TGT</text>`;
+  }
+  // lines + dots
+  series.forEach(sr=>{
+    const pts=sr.values.map((v,i)=>v!=null?{x:sx(i),y:sy(v)}:null);
+    let seg=[];
+    pts.forEach((pt,i)=>{
+      if(pt){seg.push(pt);}
+      else if(seg.length){
+        out+=`<polyline points="${seg.map(s=>s.x.toFixed(1)+','+s.y.toFixed(1)).join(' ')}" fill="none" stroke="${sr.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+        seg=[];
+      }
+    });
+    if(seg.length)out+=`<polyline points="${seg.map(s=>s.x.toFixed(1)+','+s.y.toFixed(1)).join(' ')}" fill="none" stroke="${sr.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    sr.values.forEach((v,i)=>{if(v!=null)out+=`<circle cx="${sx(i).toFixed(1)}" cy="${sy(v).toFixed(1)}" r="3.5" fill="${sr.color}" stroke="white" stroke-width="1.5"/>`;});
+  });
+  // x labels
+  const step=Math.ceil(n/7);
+  labels.forEach((lbl,i)=>{if(i%step===0||i===n-1)out+=`<text x="${sx(i).toFixed(1)}" y="${(H-5).toFixed(1)}" text-anchor="middle" font-size="9" fill="#94a3b8">${lbl}</text>`;});
+  return`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">${out}</svg>`;
+}
+
+function legend(series){
+  return`<div class="chart-legend">${series.map(s=>`<div class="chart-legend-item"><div class="chart-legend-swatch" style="background:${s.color}"></div>${s.label}</div>`).join('')}</div>`;
+}
+
+// ============================================================
+// TRENDS TAB
+// ============================================================
+function setTrendWindow(w){
+  trendWindow=w;
+  document.querySelectorAll('.tpw-btn').forEach(b=>b.classList.toggle('active',b.dataset.w===w));
+  renderTrends();
+}
+
+function renderTrends(){
+  const weeks=allWeeks();
+  const displayWeeks=trendWindow==='recent'?weeks.slice(-8):weeks;
+  if(!displayWeeks.length){
+    document.getElementById('trends-content').innerHTML='<div class="chart-card" style="text-align:center;color:var(--text3);padding:50px">No data yet</div>';
+    return;
+  }
+
+  const wd=displayWeeks.map(w=>{
+    const wDates=getDatesForPeriod('week',w,null);
+    const ken=aggregateShop('Kenmore Ave',wDates);
+    const olv=aggregateShop('Oliver St',wDates);
+    return{
+      w,lbl:mondayLabel(w),
+      kRev:+(ken?.totalSales||0),oRev:+(olv?.totalSales||0),
+      kGP:ken?.gpPercent??null,oGP:olv?.gpPercent??null,
+      kELR:ken?.elr??null,oELR:olv?.elr??null,
+      kARO:ken?.aro??null,oARO:olv?.aro??null,
+      kLM:ken?.laborMargin??null,oLM:olv?.laborMargin??null,
+      kNet:ken?.netProfit??0,oNet:olv?.netProfit??0,
+      kDays:ken?.dayCount||0,oDays:olv?.dayCount||0,
+    };
+  });
+  const lbls=wd.map(w=>'Wk '+w.lbl);
+  const KEN='#1B2B8A',OLV='#16a34a';
+
+  // Revenue chart
+  const revChart=svgBar([
+    {label:'Kenmore Ave',color:KEN,values:wd.map(w=>w.kRev)},
+    {label:'Oliver St',color:OLV,values:wd.map(w=>w.oRev)},
+  ],lbls,{goal:REV_GOAL*5,H:200});
+
+  // Net profit chart (floor at 0 for bar display)
+  const netChart=svgBar([
+    {label:'Kenmore Net',color:KEN,values:wd.map(w=>Math.max(0,w.kNet))},
+    {label:'Oliver Net',color:OLV,values:wd.map(w=>Math.max(0,w.oNet))},
+  ],lbls,{H:170});
+
+  // GP% line
+  const gpChart=svgLine([
+    {label:'Kenmore',color:KEN,values:wd.map(w=>w.kGP)},
+    {label:'Oliver',color:OLV,values:wd.map(w=>w.oGP)},
+  ],lbls,{pct:true,H:160,goal:T.gp.good});
+
+  // ELR line
+  const elrChart=svgLine([
+    {label:'Kenmore',color:KEN,values:wd.map(w=>w.kELR)},
+    {label:'Oliver',color:OLV,values:wd.map(w=>w.oELR)},
+  ],lbls,{H:155,goal:T.elr.good});
+
+  // ARO line
+  const aroChart=svgLine([
+    {label:'Kenmore',color:KEN,values:wd.map(w=>w.kARO)},
+    {label:'Oliver',color:OLV,values:wd.map(w=>w.oARO)},
+  ],lbls,{H:150,goal:T.aro.good});
+
+  // Labor margin line
+  const lmChart=svgLine([
+    {label:'Kenmore',color:KEN,values:wd.map(w=>w.kLM)},
+    {label:'Oliver',color:OLV,values:wd.map(w=>w.oLM)},
+  ],lbls,{pct:true,H:150,goal:T.labor.good});
+
+  // WoW table (last 6 weeks)
+  const wowRows=wd.slice(-6).reverse().map((w,i,arr)=>{
+    const prev=arr[i+1];
+    const comb=w.kRev+w.oRev;
+    const prevComb=prev?prev.kRev+prev.oRev:null;
+    const chg=prevComb?((comb-prevComb)/prevComb*100):null;
+    const netComb=w.kNet+w.oNet;
+    return`<tr>
+      <td style="color:var(--text2);white-space:nowrap">Wk of ${w.w}</td>
+      <td style="color:${w.kRev>=(REV_GOAL/2*w.kDays)?'var(--green)':'var(--orange)'};font-weight:600">${fm(w.kRev,0)}</td>
+      <td style="color:${w.oRev>=(REV_GOAL/2*w.oDays)?'var(--green)':'var(--orange)'};font-weight:600">${fm(w.oRev,0)}</td>
+      <td style="font-weight:700">${fm(comb,0)}</td>
+      <td style="color:${chg==null?'var(--text3)':chg>=0?'var(--green)':'var(--red)'};font-weight:600">${chg!=null?(chg>=0?'▲':'▼')+Math.abs(chg).toFixed(1)+'%':'—'}</td>
+      <td style="color:${netComb>=0?'var(--green)':'var(--red)'};font-weight:700">${netComb>=0?fm(netComb,0):'-'+fm(Math.abs(netComb),0)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('trends-content').innerHTML=`
+  <div style="display:flex;gap:6px;margin-bottom:14px">
+    <button class="trend-period-btn tpw-btn${trendWindow==='recent'?' active':''}" data-w="recent" onclick="setTrendWindow('recent')">Last 8 Weeks</button>
+    <button class="trend-period-btn tpw-btn${trendWindow==='all'?' active':''}" data-w="all" onclick="setTrendWindow('all')">All Time</button>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Weekly Revenue — Both Shops</div>
+    ${revChart}
+    ${legend([{label:'Kenmore Ave',color:KEN},{label:'Oliver St',color:OLV}])}
+    <div style="font-size:9px;color:var(--amber);margin-top:8px">⬥ Amber dashed = $${(REV_GOAL*5).toLocaleString()} weekly goal (5-day)</div>
+  </div>
+
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="chart-card-title">Gross Profit % by Week</div>
+      ${gpChart}
+      ${legend([{label:'Kenmore',color:KEN},{label:'Oliver',color:OLV}])}
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Effective Labor Rate by Week</div>
+      ${elrChart}
+      ${legend([{label:'Kenmore',color:KEN},{label:'Oliver',color:OLV}])}
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="chart-card">
+      <div class="chart-card-title">Average Repair Order by Week</div>
+      ${aroChart}
+      ${legend([{label:'Kenmore',color:KEN},{label:'Oliver',color:OLV}])}
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">Labor Margin % by Week</div>
+      ${lmChart}
+      ${legend([{label:'Kenmore',color:KEN},{label:'Oliver',color:OLV}])}
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Net Profit by Week (after fixed costs &amp; CC fees)</div>
+    ${netChart}
+    ${legend([{label:'Kenmore Net',color:KEN},{label:'Oliver Net',color:OLV}])}
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Week-over-Week Comparison</div>
+    <div style="overflow-x:auto">
+    <table class="team-table" style="font-size:11px;min-width:500px">
+      <thead><tr>
+        <th style="text-align:left">Week</th>
+        <th>Kenmore Rev</th><th>Oliver Rev</th><th>Combined</th>
+        <th>vs Prev Wk</th><th>Net Profit</th>
+      </tr></thead>
+      <tbody>${wowRows}</tbody>
+    </table>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// LEADERBOARD TAB
+// ============================================================
+function setLboardPeriod(p){
+  lboardPeriod=p;
+  ['day','week','month','ytd'].forEach(x=>document.getElementById('lpb-'+x)?.classList.toggle('active',x===p));
+  renderLeaderboard();
+}
+
+function renderLeaderboard(){
+  const dates=getDatesForPeriod(lboardPeriod,selWeek,selMonth);
+  const recs=records.filter(r=>dates.includes(r.date));
+  const periodLabel=lboardPeriod==='day'?selDate
+    :lboardPeriod==='week'?'Week of '+mondayLabel(selWeek||mondayOf(TODAY))
+    :lboardPeriod==='month'?(selMonth||TODAY.slice(0,7)):'YTD';
+
+  // Build tech map
+  const techMap={};
+  recs.forEach(r=>{
+    (r.techHours||[]).forEach(t=>{
+      if(!t.name||NON_TECHS.has(t.name))return;
+      if(!techMap[t.name])techMap[t.name]={clock:0,shops:new Set(),days:new Set()};
+      techMap[t.name].clock+=(+t.hours||0);
+      techMap[t.name].shops.add(r.shop);
+      techMap[t.name].days.add(r.date);
+    });
+  });
+
+  const kenAgg=aggregateShop('Kenmore Ave',dates);
+  const olvAgg=aggregateShop('Oliver St',dates);
+
+  const techEntries=Object.entries(techMap).map(([name,data])=>{
+    const shopArr=[...data.shops];
+    let billedEst=null,prodEst=null;
+    if(shopArr.length===1){
+      const sa=shopArr[0]==='Kenmore Ave'?kenAgg:olvAgg;
+      if(sa&&sa.totalTechClock>0){
+        billedEst=+(sa.billedHours*(data.clock/sa.totalTechClock)).toFixed(2);
+        prodEst=billedEst/data.clock*100;
+      }
+    }
+    return{name,clock:data.clock,shops:shopArr,days:data.days.size,billedEst,prodEst};
+  }).sort((a,b)=>(b.prodEst??-1)-(a.prodEst??-1));
+
+  // Rank medals
+  const medals=['🥇','🥈','🥉'];
+  const rankBorder=['#d97706','#94a3b8','#b45309'];
+  const rankBg=['#fffbeb','#f8fafc','#fff7ed'];
+
+  // Tech leaderboard cards
+  const lboardCards=techEntries.length
+    ?techEntries.map((t,i)=>{
+      const prodC=t.prodEst!=null?tc(t.prodEst,T.prod):'var(--text3)';
+      const avgDay=t.days>0?(t.clock/t.days).toFixed(1):'—';
+      const rankBorderC=i<3?rankBorder[i]:'var(--border)';
+      const rankBgC=i<3?rankBg[i]:'var(--surface2)';
+      return`<div class="lboard-card" style="border-left:4px solid ${rankBorderC}">
+        <div class="lboard-rank" style="background:${rankBgC};border-color:${rankBorderC};color:${rankBorderC}">
+          ${i<3?medals[i]:'#'+(i+1)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="lboard-name">${t.name}</div>
+          <div class="lboard-meta">${t.shops.join(' · ')} &nbsp;·&nbsp; ${t.days} day${t.days!==1?'s':''} &nbsp;·&nbsp; ${avgDay}h avg/day</div>
+        </div>
+        <div class="lboard-stats">
+          <div class="lboard-stat">
+            <div class="lboard-stat-val">${t.clock.toFixed(1)}h</div>
+            <div class="lboard-stat-lbl">Clock</div>
+          </div>
+          <div class="lboard-stat">
+            <div class="lboard-stat-val">${t.billedEst!=null?t.billedEst.toFixed(1)+'h':'—'}</div>
+            <div class="lboard-stat-lbl">Billed</div>
+          </div>
+          <div class="lboard-stat">
+            <div class="lboard-stat-val" style="color:${prodC}">${t.prodEst!=null?t.prodEst.toFixed(0)+'%':'—'}</div>
+            <div class="lboard-stat-lbl">Effic.</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')
+    :`<div style="color:var(--text3);text-align:center;padding:40px;font-size:12px">No tech data for this period</div>`;
+
+  // Shop efficiency comparison
+  const shopEffHTML=`<div class="chart-card">
+    <div class="chart-card-title">Shop Productivity — ${periodLabel}</div>
+    <div class="shop-eff-card">
+      ${[['Kenmore Ave',kenAgg],['Oliver St',olvAgg]].map(([shop,agg])=>{
+        if(!agg)return`<div class="shop-eff-box" style="color:var(--text3);text-align:center;padding:20px">No data</div>`;
+        const prod=agg.totalTechClock>0?(agg.billedHours/agg.totalTechClock*100):null;
+        const pc=prod!=null?tc(prod,T.prod):'var(--text3)';
+        return`<div class="shop-eff-box">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">${shop.toUpperCase()}</div>
+          <div style="font-size:26px;font-weight:900;color:${pc};margin-bottom:2px">${prod!=null?prod.toFixed(1)+'%':'—'}</div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:8px">${agg.billedHours.toFixed(1)}h billed / ${agg.totalTechClock.toFixed(1)}h clock</div>
+          <div class="pbar" style="margin-bottom:10px"><div class="pbar-fill" style="width:${Math.min(prod||0,100).toFixed(1)}%;background:${pc}"></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px">
+            <div class="ar-box"><div class="ar-val" style="color:${tc(agg.elr,T.elr)}">${agg.elr?'$'+(+agg.elr).toFixed(0):'—'}</div><div class="ar-lbl">ELR</div></div>
+            <div class="ar-box"><div class="ar-val" style="color:${tc(agg.aro,T.aro)}">${agg.aro?'$'+(+agg.aro).toFixed(0):'—'}</div><div class="ar-lbl">ARO</div></div>
+            <div class="ar-box"><div class="ar-val" style="color:${tc(agg.gpPercent,T.gp)}">${agg.gpPercent?agg.gpPercent.toFixed(1)+'%':'—'}</div><div class="ar-lbl">GP%</div></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // Comebacks
+  const totalCB=recs.reduce((a,r)=>a+(+r.comebacks||0),0);
+  const totalInv=recs.reduce((a,r)=>a+(+r.invoiceCount||0),0);
+  const cbRate=totalInv>0?(totalCB/totalInv*100):0;
+  const cbColor=cbRate>5?'var(--red)':cbRate>2?'var(--orange)':'var(--green)';
+  const last10=allDates().slice(-10);
+  const cbRows=last10.reverse().map((d,i)=>{
+    const dr=records.filter(r=>r.date===d);
+    const cb=dr.reduce((a,r)=>a+(+r.comebacks||0),0);
+    const inv=dr.reduce((a,r)=>a+(+r.invoiceCount||0),0);
+    const r2=inv>0?(cb/inv*100):0;
+    return`<tr style="background:${i%2?'var(--surface2)':''}">
+      <td style="color:var(--text2)">${d}</td>
+      <td>${inv}</td>
+      <td style="color:${cb>0?'var(--red)':'var(--text3)'};font-weight:${cb?'700':'400'}">${cb||'—'}</td>
+      <td style="color:${r2>5?'var(--red)':r2>2?'var(--orange)':'var(--green)'};font-weight:${cb?'700':'400'}">${cb?r2.toFixed(1)+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const cbHTML=`<div class="chart-card">
+    <div class="chart-card-title">Quality — Comeback Tracker</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      <div class="ar-box"><div class="ar-val" style="font-size:22px;color:${cbColor}">${totalCB}</div><div class="ar-lbl">Comebacks</div></div>
+      <div class="ar-box"><div class="ar-val" style="font-size:22px">${totalInv}</div><div class="ar-lbl">Total Invoices</div></div>
+      <div class="ar-box"><div class="ar-val" style="font-size:22px;color:${cbColor}">${cbRate.toFixed(2)}%</div><div class="ar-lbl">CB Rate</div></div>
+    </div>
+    <div class="card-title" style="margin-bottom:6px">Last 10 Business Days</div>
+    <table class="team-table" style="font-size:11px">
+      <thead><tr><th style="text-align:left">Date</th><th>Invoices</th><th>Comebacks</th><th>CB Rate</th></tr></thead>
+      <tbody>${cbRows}</tbody>
+    </table>
+  </div>`;
+
+  document.getElementById('leaderboard-content').innerHTML=`
+  <div class="chart-card" style="padding:14px 16px">
+    <div class="chart-card-title">Tech Rankings — ${periodLabel}</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:12px">Ranked by efficiency % &nbsp;·&nbsp; Clock = hours on site &nbsp;·&nbsp; Billed = estimated revenue hours</div>
+    ${lboardCards}
+  </div>
+  ${shopEffHTML}
+  ${cbHTML}`;
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+loadRecords();
+// Default selected date to most recent date with data (not necessarily today)
+const _bootDates=[...new Set(records.map(r=>r.date))].sort();
+if(_bootDates.length) selDate=_bootDates[_bootDates.length-1];
+setPeriod('day');
+renderPacing();
+setTeamPeriod('day');
+setLboardPeriod('month');
+initEntry();
+</script>
+</body>
+</html>
